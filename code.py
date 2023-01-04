@@ -1,6 +1,7 @@
 import asyncio
 import board
 import displayio
+import time
 from busio import I2C
 from displayio import Group, I2CDisplay
 from keypad import Keys
@@ -23,6 +24,51 @@ DISPLAY_OFFSET_X = 2
 
 FONT_FILENAME = "/bizcat.pcf"
 FONT_HEIGHT = 16
+
+
+# Scenes
+
+class SceneManager:
+    def __init__(self, scenes):
+        print(type(scenes))
+        self._scenes = list(scenes)
+
+        self._current_id = 0
+        self._current = self._scenes[self._current_id]()
+
+    def next_scene(self):
+        self._current_id += 1
+        if self._current_id == len(self._scenes):
+            self._current_id = 0
+
+        self._current = self._scenes[self._current_id]()
+
+    def get_text(self):
+        return self._current.text
+
+
+class IdleScene:
+    @property
+    def text(self):
+        return "IdleScene"
+
+
+class ManualControlScene:
+    @property
+    def text(self):
+        return "ManualControlScene"
+
+
+class AutoOpenTimeScene:
+    @property
+    def text(self):
+        return "AutoOpenTimeScene"
+
+
+class AutoOpenSpeedScene:
+    @property
+    def text(self):
+        return "AutoOpenSpeedScene"
 
 
 # Display
@@ -97,5 +143,15 @@ async def main():
     await asyncio.gather(key_event_task)
 
 
+def main2():
+    scenes = SceneManager([IdleScene, ManualControlScene, AutoOpenTimeScene, AutoOpenSpeedScene])
+
+    while True:
+        print(scenes.get_text())
+        time.sleep(1)
+        scenes.next_scene()
+
+
 if __name__ == "__main__":
-    asyncio.run(main())
+    # asyncio.run(main())
+    main2()
