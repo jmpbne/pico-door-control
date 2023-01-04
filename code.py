@@ -13,7 +13,7 @@ DISPLAY_SDA = board.GP14
 DISPLAY_WIDTH = 128
 DISPLAY_OFFSET_X = 2
 
-FONT_FILENAME = "/bizcat.bdf"
+FONT_FILENAME = "/bizcat.pcf"
 FONT_HEIGHT = 16
 
 
