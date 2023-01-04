@@ -1,22 +1,31 @@
+import asyncio
 import board
 import displayio
 from busio import I2C
 from displayio import Group, I2CDisplay
+from keypad import Keys
 
 from adafruit_bitmap_font import bitmap_font
 from adafruit_display_text.label import Label
 from adafruit_displayio_sh1106 import SH1106
 
+BUTTON_A = board.GP18
+BUTTON_B = board.GP19
+BUTTON_C = board.GP20
+BUTTON_D = board.GP21
+
 DISPLAY_ADDRESS = 0x3C
 DISPLAY_HEIGHT = 64
-DISPLAY_SCL = board.GP15
-DISPLAY_SDA = board.GP14
+DISPLAY_SCL = board.GP17
+DISPLAY_SDA = board.GP16
 DISPLAY_WIDTH = 128
 DISPLAY_OFFSET_X = 2
 
 FONT_FILENAME = "/bizcat.pcf"
 FONT_HEIGHT = 16
 
+
+# Display
 
 def init_display():
     displayio.release_displays()
@@ -51,18 +60,42 @@ def update_display(display, font, text_lines):
     display.show(group)
 
 
-if __name__ == "__main__":
+# Keys
+
+def init_keys(*keys):
+    # buttons are connected GPIO-button-GND
+    return Keys(keys, value_when_pressed=False)
+
+
+async def handle_key_events(keys):
+    while True:
+        key_event = keys.events.get()
+        if key_event and key_event.released:
+            print(f"pressed key: {key_event.key_number}")
+
+        await asyncio.sleep(0)
+
+
+# Main
+
+async def main():
     text_lines = [
         "Motor avg speed:",
         "20%",
         "0123456789:01",
-        " S+    S-    OK",
+        " N/A S+  S-  OK",
     ]
 
     font = bitmap_font.load_font(FONT_FILENAME)
 
     display = init_display()
-    update_display(display, font.format(), text_lines)
+    update_display(display, font, text_lines)
 
-    while True:
-        pass
+    keypad = init_keys(BUTTON_A, BUTTON_B, BUTTON_C, BUTTON_D)
+    key_event_task = asyncio.create_task(handle_key_events(keypad))
+
+    await asyncio.gather(key_event_task)
+
+
+if __name__ == "__main__":
+    asyncio.run(main())
