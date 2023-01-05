@@ -1,7 +1,6 @@
 import asyncio
 import board
 import displayio
-import time
 from busio import I2C
 from displayio import Group, I2CDisplay
 from keypad import Keys
@@ -28,8 +27,15 @@ FONT_HEIGHT = 16
 
 # Scenes
 
+
 class SceneManager:
+    """
+    This class is responsible for controlling the input and output
+    (OLED display module and buttons).
+    """
+
     def __init__(self, *, scenes, keys):
+        # todo: init and update display here
         self.scenes = list(scenes)
         self.keys = list(keys)
 
@@ -95,6 +101,7 @@ class AutoOpenSpeedScene(Scene):
 
 # Display
 
+
 def init_display():
     displayio.release_displays()
 
@@ -106,7 +113,7 @@ def init_display():
         width=DISPLAY_WIDTH,
         height=DISPLAY_HEIGHT,
         colstart=DISPLAY_OFFSET_X,
-        auto_refresh=False
+        auto_refresh=False,
     )
 
     display.show(Group())
@@ -130,6 +137,7 @@ def update_display(display, font, text_lines):
 
 # Keys
 
+
 def init_keys(*keys):
     # buttons are connected GPIO-button-GND
     return Keys(keys, value_when_pressed=False)
@@ -145,6 +153,7 @@ async def handle_key_events(keys):
 
 
 # Main
+
 
 async def main():
     text_lines = [
@@ -168,7 +177,7 @@ async def main():
 async def main2():
     scenes = SceneManager(
         scenes=[IdleScene, ManualControlScene, AutoOpenTimeScene, AutoOpenSpeedScene],
-        keys=[BUTTON_A, BUTTON_B, BUTTON_C, BUTTON_D]
+        keys=[BUTTON_A, BUTTON_B, BUTTON_C, BUTTON_D],
     )
 
     scenes_on_press_listener_task = asyncio.create_task(scenes.on_press_listener())
