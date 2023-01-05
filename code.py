@@ -131,24 +131,12 @@ class IdleScene(Scene):
 
 
 class ManualControlScene(Scene):
-    def __init__(self, manager):
-        super().__init__(manager)
-
-        self.speed = 20
-        self.default_speed = 20
-
     def on_press(self, event):
-        if event.key_number == 0:
-            self.speed = self.default_speed
-            self.update_display()
-            return
         if event.key_number == 1:
-            self.speed = max(MOTOR_MIN_SPEED, self.speed - 10)
-            self.update_display()
+            print("close the door")
             return
         if event.key_number == 2:
-            self.speed = min(MOTOR_MAX_SPEED, self.speed + 10)
-            self.update_display()
+            print("open the door")
             return
 
         super().on_press(event)
@@ -157,9 +145,9 @@ class ManualControlScene(Scene):
     def text_lines(self):
         return [
             _("Manual control"),
-            f"{self.speed}%",
             "",
-            f"{_('Reset')} v  ^  {_('OK')}",
+            "",
+            f"      v  ^  {_('OK')}",
         ]
 
 
