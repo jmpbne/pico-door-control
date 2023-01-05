@@ -112,9 +112,7 @@ class Scene:
         print(f"enter {self.__class__.__name__}")
 
     def on_press(self, event):
-        # todo: use the last button regardless of how many there are
-        if event.key_number == 3:
-            self.manager.switch_to_next_scene()
+        self.manager.switch_to_next_scene()
 
     def on_exit(self):
         print(f"leave {self.__class__.__name__}")
@@ -135,12 +133,10 @@ class ManualControlScene(Scene):
     def on_press(self, event):
         if event.key_number == 1:
             print("close the door")
-            return
-        if event.key_number == 2:
+        elif event.key_number == 2:
             print("open the door")
-            return
-
-        super().on_press(event)
+        elif event.key_number == 3:
+            super().on_press(event)
 
     @property
     def text_lines(self):
@@ -165,26 +161,23 @@ class AutoOpenTimeScene(Scene):
         if event.key_number == 0:
             self.time = list(self.default_time)
             self.update_display()
-            return
-        if event.key_number == 1:
+        elif event.key_number == 1:
             digit = self.time[self.cursor_position]
             digit += 1
             if digit > self._get_max_digit(self.cursor_position):
                 digit = 0
             self.time[self.cursor_position] = digit
             self.update_display()
-            return
-        if event.key_number == 2:
+        elif event.key_number == 2:
             pos = self.cursor_position
             pos += 1
             if pos == len(self.time):
                 pos = 0
             self.cursor_position = pos
             self.update_display()
-            return
-
-        if self._is_date_valid():
-            super().on_press(event)
+        elif event.key_number == 3:
+            if self._is_date_valid():
+                super().on_press(event)
 
     def _is_date_valid(self):
         hour = 10 * self.time[0] + self.time[1]
