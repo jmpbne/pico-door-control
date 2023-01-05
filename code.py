@@ -1,10 +1,12 @@
-import asyncio
+# Built-in
 import board
 import displayio
 from busio import I2C
 from displayio import Group, I2CDisplay
 from keypad import Keys
 
+# CircuitPython library bundle
+import asyncio
 from adafruit_bitmap_font import bitmap_font
 from adafruit_datetime import time
 from adafruit_display_text.label import Label
@@ -46,7 +48,7 @@ TRANSLATIONS = {
         "Reset": "Reset",
         "OK": "  OK",
         "Open time": "Czas otwarcia",
-        "Manual control": "Sterowan. reczne",
+        "Manual control": "Sterowanie reczne",
     },
 }
 
@@ -236,6 +238,9 @@ class AutoOpenTimeScene(Scene):
         ]
 
 
+# Display
+
+
 class Display:
     def __init__(self):
         displayio.release_displays()
@@ -274,8 +279,14 @@ def init_display():
     return Display()
 
 
+# Keys
+
+
 def init_keys():
     return Keys(BUTTONS, value_when_pressed=BUTTONS_VALUE_WHEN_PRESSED)
+
+
+# Main
 
 
 async def main():
