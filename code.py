@@ -125,11 +125,60 @@ class ManualControlScene(Scene):
 
     @property
     def text_lines(self):
-        return ["Manual control", f"{self.speed}%", "", "Undo  v  ^   OK"]
+        return ["Manual control", f"{self.speed}%", "", "Undo  v  ^    OK"]
 
 
 class AutoOpenTimeScene(Scene):
-    pass
+    def __init__(self, manager):
+        super().__init__(manager)
+
+        self.time = [0, 0, 0, 0]
+        self.default_time = [0, 0, 0, 0]
+
+        self.cursor_position = 0
+
+    def on_press(self, event):
+        if event.key_number == 0:
+            self.time = list(self.default_time)
+            self.update_display()
+            return
+        if event.key_number == 1:
+            digit = self.time[self.cursor_position]
+            digit += 1
+            if digit > 9:
+                digit = 0
+            self.time[self.cursor_position] = digit
+            self.update_display()
+            return
+        if event.key_number == 2:
+            pos = self.cursor_position
+            pos += 1
+            if pos == len(self.time):
+                pos = 0
+            self.cursor_position = pos
+            self.update_display()
+            return
+
+        super().on_press(event)
+
+    def _get_time_string(self):
+        return f"{self.time[0]}{self.time[1]}:{self.time[2]}{self.time[3]}"
+
+    def _get_cursor_string(self):
+        pos = self.cursor_position
+        if pos > 1:
+            pos += 1  # offset for colon
+
+        return " " * pos + "^"
+
+    @property
+    def text_lines(self):
+        return [
+            "Open time",
+            self._get_time_string(),
+            self._get_cursor_string(),
+            "Undo  v  >    OK",
+        ]
 
 
 class Display:
