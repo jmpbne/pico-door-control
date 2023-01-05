@@ -37,13 +37,13 @@ LOCALE = "pl"
 
 TRANSLATIONS = {
     "en": {
-        "Back": "Back",
+        "Reset": "Reset",
         "OK": "  OK",
         "Open time": "Open time",
         "Manual control": "Manual control",
     },
     "pl": {
-        "Back": "Wroc",
+        "Reset": "Reset",
         "OK": "  OK",
         "Open time": "Czas otwarcia",
         "Manual control": "Sterowan. reczne",
@@ -157,7 +157,7 @@ class ManualControlScene(Scene):
             _("Manual control"),
             f"{self.speed}%",
             "",
-            f"{_('Back')}  v  ^  {_('OK')}",
+            f"{_('Reset')} v  ^  {_('OK')}",
         ]
 
 
@@ -232,7 +232,7 @@ class AutoOpenTimeScene(Scene):
             _("Open time"),
             self._get_time_string(),
             self._get_cursor_string(),
-            f"{_('Back')}  v  >  {ok_str}",
+            f"{_('Reset')} v  >  {ok_str}",
         ]
 
 
