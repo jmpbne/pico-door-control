@@ -1,6 +1,7 @@
 # Built-in
 import board
 import displayio
+import rtc
 from busio import I2C
 from displayio import Group, I2CDisplay
 from keypad import Keys
@@ -8,7 +9,7 @@ from keypad import Keys
 # CircuitPython library bundle
 import asyncio
 from adafruit_bitmap_font import bitmap_font
-from adafruit_datetime import time
+from adafruit_datetime import datetime, time
 from adafruit_display_text.label import Label
 from adafruit_displayio_sh1106 import SH1106
 
@@ -274,12 +275,23 @@ def init_keys():
     return Keys(BUTTONS, value_when_pressed=BUTTONS_VALUE_WHEN_PRESSED)
 
 
+# Clock
+
+
+def init_clock():
+    clock = rtc.RTC()
+    clock.datetime = datetime(2000, 1, 1, 0, 0, 0).timetuple()
+
+    return clock
+
+
 # Main
 
 
 async def main():
     display = init_display()
     keys = init_keys()
+    init_clock()
 
     menu = MenuManager(
         scenes=[IdleScene, ManualControlScene, AutoOpenTimeScene],
@@ -287,8 +299,7 @@ async def main():
         keys=keys,
     )
 
-    menu_task = asyncio.create_task(menu.task())
-    await asyncio.gather(menu_task)
+    await asyncio.create_task(menu.task())
 
 
 if __name__ == "__main__":
