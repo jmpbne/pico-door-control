@@ -30,8 +30,35 @@ FONT_HEIGHT = 16
 MOTOR_MIN_SPEED = 20
 MOTOR_MAX_SPEED = 100
 
+LOCALE = "pl"
 
-# Scenes
+
+# Translations
+
+TRANSLATIONS = {
+    "en": {
+        "Back": "Back",
+        "OK": "  OK",
+        "Open time": "Open time",
+        "Manual control": "Manual control",
+    },
+    "pl": {
+        "Back": "Wroc",
+        "OK": "  OK",
+        "Open time": "Czas otwarcia",
+        "Manual control": "Sterowan. reczne",
+    },
+}
+
+
+def _(phrase):
+    try:
+        return TRANSLATIONS[LOCALE][phrase]
+    except KeyError:
+        return "???"
+
+
+# Menu
 
 
 class MenuManager:
@@ -126,7 +153,12 @@ class ManualControlScene(Scene):
 
     @property
     def text_lines(self):
-        return ["Manual control", f"{self.speed}%", "", "Undo  v  ^    OK"]
+        return [
+            _("Manual control"),
+            f"{self.speed}%",
+            "",
+            f"{_('Back')}  v  ^  {_('OK')}",
+        ]
 
 
 class AutoOpenTimeScene(Scene):
@@ -194,13 +226,13 @@ class AutoOpenTimeScene(Scene):
 
     @property
     def text_lines(self):
-        ok_str = "OK" if self._is_date_valid() else ""
+        ok_str = _("OK") if self._is_date_valid() else ""
 
         return [
-            "Open time",
+            _("Open time"),
             self._get_time_string(),
             self._get_cursor_string(),
-            f"Undo  v  >    {ok_str}",
+            f"{_('Back')}  v  >  {ok_str}",
         ]
 
 
