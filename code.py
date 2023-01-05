@@ -6,6 +6,7 @@ from displayio import Group, I2CDisplay
 from keypad import Keys
 
 from adafruit_bitmap_font import bitmap_font
+from adafruit_datetime import time
 from adafruit_display_text.label import Label
 from adafruit_displayio_sh1106 import SH1106
 
@@ -145,7 +146,7 @@ class AutoOpenTimeScene(Scene):
         if event.key_number == 1:
             digit = self.time[self.cursor_position]
             digit += 1
-            if digit > 9:
+            if digit > self._get_max_digit(self.cursor_position):
                 digit = 0
             self.time[self.cursor_position] = digit
             self.update_display()
@@ -159,7 +160,27 @@ class AutoOpenTimeScene(Scene):
             self.update_display()
             return
 
-        super().on_press(event)
+        if self._is_date_valid():
+            super().on_press(event)
+
+    def _is_date_valid(self):
+        hour = 10 * self.time[0] + self.time[1]
+        minute = 10 * self.time[2] + self.time[3]
+
+        try:
+            time(hour, minute)
+        except ValueError:
+            return False
+        else:
+            return True
+
+    def _get_max_digit(self, position):
+        if position == 0:
+            return 2
+        if position == 2:
+            return 5
+
+        return 9
 
     def _get_time_string(self):
         return f"{self.time[0]}{self.time[1]}:{self.time[2]}{self.time[3]}"
@@ -173,11 +194,13 @@ class AutoOpenTimeScene(Scene):
 
     @property
     def text_lines(self):
+        ok_str = "OK" if self._is_date_valid() else ""
+
         return [
             "Open time",
             self._get_time_string(),
             self._get_cursor_string(),
-            "Undo  v  >    OK",
+            f"Undo  v  >    {ok_str}",
         ]
 
 
