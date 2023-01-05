@@ -29,46 +29,68 @@ FONT_HEIGHT = 16
 # Scenes
 
 class SceneManager:
-    def __init__(self, scenes):
-        print(type(scenes))
-        self._scenes = list(scenes)
+    def __init__(self, *, scenes, keys):
+        self.scenes = list(scenes)
+        self.keys = list(keys)
 
-        self._current_id = 0
-        self._current = self._scenes[self._current_id]()
+        self.current_scene_id = 0
+        self.current_scene = self.scenes[self.current_scene_id]()
+
+    async def on_press_listener(self):
+        with Keys(self.keys, value_when_pressed=False) as keys:
+            while True:
+                key_event = keys.events.get()
+                if key_event and key_event.released:
+                    self.current_scene.on_press(key_event, self)
+
+                await asyncio.sleep(0)
 
     def next_scene(self):
-        self._current_id += 1
-        if self._current_id == len(self._scenes):
-            self._current_id = 0
+        self.current_scene_id += 1
+        if self.current_scene_id == len(self.scenes):
+            self.current_scene_id = 0
 
-        self._current = self._scenes[self._current_id]()
+        self.current_scene = self.scenes[self.current_scene_id]()
 
     def get_text(self):
-        return self._current.text
+        return self.current_scene.text
 
 
-class IdleScene:
+class Scene:
+    def __init__(self):
+        # todo: on_enter and on_exit should be called by the manager
+        self.on_enter()
+
+    def on_enter(self):
+        print(self.text)
+
+    def on_exit(self):
+        pass
+
+    def on_press(self, event, manager):
+        # todo: use the last button regardless of how many there are
+        if event.key_number == 3:
+            manager.next_scene()
+
     @property
     def text(self):
-        return "IdleScene"
+        return self.__class__.__name__.replace("Scene", "")
 
 
-class ManualControlScene:
-    @property
-    def text(self):
-        return "ManualControlScene"
+class IdleScene(Scene):
+    pass
 
 
-class AutoOpenTimeScene:
-    @property
-    def text(self):
-        return "AutoOpenTimeScene"
+class ManualControlScene(Scene):
+    pass
 
 
-class AutoOpenSpeedScene:
-    @property
-    def text(self):
-        return "AutoOpenSpeedScene"
+class AutoOpenTimeScene(Scene):
+    pass
+
+
+class AutoOpenSpeedScene(Scene):
+    pass
 
 
 # Display
@@ -143,15 +165,15 @@ async def main():
     await asyncio.gather(key_event_task)
 
 
-def main2():
-    scenes = SceneManager([IdleScene, ManualControlScene, AutoOpenTimeScene, AutoOpenSpeedScene])
+async def main2():
+    scenes = SceneManager(
+        scenes=[IdleScene, ManualControlScene, AutoOpenTimeScene, AutoOpenSpeedScene],
+        keys=[BUTTON_A, BUTTON_B, BUTTON_C, BUTTON_D]
+    )
 
-    while True:
-        print(scenes.get_text())
-        time.sleep(1)
-        scenes.next_scene()
+    scenes_on_press_listener_task = asyncio.create_task(scenes.on_press_listener())
+    await asyncio.gather(scenes_on_press_listener_task)
 
 
 if __name__ == "__main__":
-    # asyncio.run(main())
-    main2()
+    asyncio.run(main2())
