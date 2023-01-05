@@ -13,6 +13,8 @@ BUTTON_A = board.GP18
 BUTTON_B = board.GP19
 BUTTON_C = board.GP20
 BUTTON_D = board.GP21
+BUTTONS = [BUTTON_A, BUTTON_B, BUTTON_C, BUTTON_D]
+BUTTONS_VALUE_WHEN_PRESSED = False  # True = VCC, False = GND
 
 DISPLAY_ADDRESS = 0x3C
 DISPLAY_HEIGHT = 64
@@ -28,28 +30,25 @@ FONT_HEIGHT = 16
 # Scenes
 
 
-class SceneManager:
+class MenuManager:
     """
     This class is responsible for controlling the input and output
     (OLED display module and buttons).
     """
 
-    def __init__(self, *, scenes, keys):
-        # todo: init and update display here
+    def __init__(self, *, scenes, display, keys):
         self.scenes = list(scenes)
-        self.keys = list(keys)
 
         self.current_scene_id = 0
         self.current_scene = self.scenes[self.current_scene_id]()
 
-    async def on_press_listener(self):
-        with Keys(self.keys, value_when_pressed=False) as keys:
-            while True:
-                key_event = keys.events.get()
-                if key_event and key_event.released:
-                    self.current_scene.on_press(key_event, self)
+        self.display = display
+        self.keys = keys
 
-                await asyncio.sleep(0)
+        self.display.update("test")
+
+    def get_text(self):
+        return self.current_scene.text
 
     def next_scene(self):
         self.current_scene_id += 1
@@ -58,8 +57,13 @@ class SceneManager:
 
         self.current_scene = self.scenes[self.current_scene_id]()
 
-    def get_text(self):
-        return self.current_scene.text
+    async def task(self):
+        while True:
+            key_event = self.keys.events.get()
+            if key_event and key_event.released:
+                self.current_scene.on_press(key_event, self)
+
+            await asyncio.sleep(0)
 
 
 class Scene:
@@ -99,90 +103,61 @@ class AutoOpenSpeedScene(Scene):
     pass
 
 
-# Display
+class Display:
+    def __init__(self):
+        displayio.release_displays()
+
+        i2c = I2C(DISPLAY_SCL, DISPLAY_SDA)
+        bus = I2CDisplay(i2c, device_address=DISPLAY_ADDRESS)
+
+        self.display = SH1106(
+            bus,
+            width=DISPLAY_WIDTH,
+            height=DISPLAY_HEIGHT,
+            colstart=DISPLAY_OFFSET_X,
+            auto_refresh=False,
+        )
+
+        # workaround - do not show REPL on boot
+        self.display.show(Group())
+        self.display.auto_refresh = True
+
+        self.font = bitmap_font.load_font(FONT_FILENAME)
+
+    def update(self, text):
+        group = Group()
+
+        for idx, text_line in enumerate(text.splitlines()):
+            text_area = Label(self.font, text=text_line, color=0xFFFFFF)
+            text_area.x = 0
+            text_area.y = (FONT_HEIGHT // 2) + FONT_HEIGHT * idx
+
+            group.append(text_area)
+
+        self.display.show(group)
 
 
 def init_display():
-    displayio.release_displays()
-
-    i2c = I2C(DISPLAY_SCL, DISPLAY_SDA)
-    bus = I2CDisplay(i2c, device_address=DISPLAY_ADDRESS)
-
-    display = SH1106(
-        bus,
-        width=DISPLAY_WIDTH,
-        height=DISPLAY_HEIGHT,
-        colstart=DISPLAY_OFFSET_X,
-        auto_refresh=False,
-    )
-
-    display.show(Group())
-    display.auto_refresh = True
-
-    return display
+    return Display()
 
 
-def update_display(display, font, text_lines):
-    group = Group()
-
-    for idx, text_line in enumerate(text_lines):
-        text_area = Label(font, text=text_line, color=0xFFFFFF)
-        text_area.x = 0
-        text_area.y = (FONT_HEIGHT // 2) + FONT_HEIGHT * idx
-
-        group.append(text_area)
-
-    display.show(group)
-
-
-# Keys
-
-
-def init_keys(*keys):
-    # buttons are connected GPIO-button-GND
-    return Keys(keys, value_when_pressed=False)
-
-
-async def handle_key_events(keys):
-    while True:
-        key_event = keys.events.get()
-        if key_event and key_event.released:
-            print(f"pressed key: {key_event.key_number}")
-
-        await asyncio.sleep(0)
-
-
-# Main
+def init_keys():
+    return Keys(BUTTONS, value_when_pressed=BUTTONS_VALUE_WHEN_PRESSED)
 
 
 async def main():
-    text_lines = [
-        "Motor avg speed:",
-        "20%",
-        "0123456789:01",
-        " N/A S+  S-  OK",
-    ]
-
-    font = bitmap_font.load_font(FONT_FILENAME)
-
     display = init_display()
-    update_display(display, font, text_lines)
+    keys = init_keys()
 
-    keypad = init_keys(BUTTON_A, BUTTON_B, BUTTON_C, BUTTON_D)
-    key_event_task = asyncio.create_task(handle_key_events(keypad))
-
-    await asyncio.gather(key_event_task)
-
-
-async def main2():
-    scenes = SceneManager(
+    menu = MenuManager(
         scenes=[IdleScene, ManualControlScene, AutoOpenTimeScene, AutoOpenSpeedScene],
-        keys=[BUTTON_A, BUTTON_B, BUTTON_C, BUTTON_D],
+        display=display,
+        keys=keys,
     )
 
-    scenes_on_press_listener_task = asyncio.create_task(scenes.on_press_listener())
-    await asyncio.gather(scenes_on_press_listener_task)
+    menu_task = asyncio.create_task(menu.task())
+    await asyncio.gather(menu_task)
 
 
 if __name__ == "__main__":
-    asyncio.run(main2())
+    asyncio.run(main())
