@@ -26,6 +26,9 @@ DISPLAY_WIDTH = 128
 FONT_FILENAME = "/bizcat.pcf"
 FONT_HEIGHT = 16
 
+MOTOR_MIN_SPEED = 20
+MOTOR_MAX_SPEED = 100
+
 
 # Scenes
 
@@ -74,7 +77,7 @@ class Scene:
         self.manager = manager
 
     def on_enter(self):
-        self.update_display(self.text)
+        self.update_display()
         print(f"enter {self.__class__.__name__}")
 
     def on_press(self, event):
@@ -85,12 +88,12 @@ class Scene:
     def on_exit(self):
         print(f"leave {self.__class__.__name__}")
 
-    def update_display(self, text):
-        self.manager.display.update(text)
+    def update_display(self):
+        self.manager.display.update(self.text_lines)
 
     @property
-    def text(self):
-        return self.__class__.__name__.replace("Scene", "")
+    def text_lines(self):
+        return [self.__class__.__name__]
 
 
 class IdleScene(Scene):
@@ -98,14 +101,34 @@ class IdleScene(Scene):
 
 
 class ManualControlScene(Scene):
-    pass
+    def __init__(self, manager):
+        super().__init__(manager)
+
+        self.speed = 20
+        self.default_speed = 20
+
+    def on_press(self, event):
+        if event.key_number == 0:
+            self.speed = self.default_speed
+            self.update_display()
+            return
+        if event.key_number == 1:
+            self.speed = max(MOTOR_MIN_SPEED, self.speed - 10)
+            self.update_display()
+            return
+        if event.key_number == 2:
+            self.speed = min(MOTOR_MAX_SPEED, self.speed + 10)
+            self.update_display()
+            return
+
+        super().on_press(event)
+
+    @property
+    def text_lines(self):
+        return ["Manual control", f"{self.speed}%", "", "Undo  v  ^   OK"]
 
 
 class AutoOpenTimeScene(Scene):
-    pass
-
-
-class AutoOpenSpeedScene(Scene):
     pass
 
 
@@ -130,10 +153,10 @@ class Display:
 
         self.font = bitmap_font.load_font(FONT_FILENAME)
 
-    def update(self, text):
+    def update(self, text_lines):
         group = Group()
 
-        for idx, text_line in enumerate(text.splitlines()):
+        for idx, text_line in enumerate(text_lines):
             text_area = Label(self.font, text=text_line, color=0xFFFFFF)
             text_area.x = 0
             text_area.y = (FONT_HEIGHT // 2) + FONT_HEIGHT * idx
@@ -156,7 +179,7 @@ async def main():
     keys = init_keys()
 
     menu = MenuManager(
-        scenes=[IdleScene, ManualControlScene, AutoOpenTimeScene, AutoOpenSpeedScene],
+        scenes=[IdleScene, ManualControlScene, AutoOpenTimeScene],
         display=display,
         keys=keys,
     )
