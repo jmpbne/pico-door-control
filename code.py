@@ -20,8 +20,8 @@ DISPLAY_ADDRESS = 0x3C
 DISPLAY_HEIGHT = 64
 DISPLAY_SCL = board.GP17
 DISPLAY_SDA = board.GP16
-DISPLAY_WIDTH = 128
 DISPLAY_OFFSET_X = 2
+DISPLAY_WIDTH = 128
 
 FONT_FILENAME = "/bizcat.pcf"
 FONT_HEIGHT = 16
@@ -37,50 +37,56 @@ class MenuManager:
     """
 
     def __init__(self, *, scenes, display, keys):
-        self.scenes = list(scenes)
-
-        self.current_scene_id = 0
-        self.current_scene = self.scenes[self.current_scene_id]()
-
         self.display = display
         self.keys = keys
 
-        self.display.update("test")
+        self.scenes = list(scenes)
+        self.current_scene_id = None
+        self.current_scene = None
 
-    def get_text(self):
-        return self.current_scene.text
+        self.switch_to_scene(0)
 
-    def next_scene(self):
-        self.current_scene_id += 1
-        if self.current_scene_id == len(self.scenes):
-            self.current_scene_id = 0
+    def switch_to_scene(self, scene_id):
+        if self.current_scene:
+            self.current_scene.on_exit()
 
-        self.current_scene = self.scenes[self.current_scene_id]()
+        if scene_id == len(self.scenes):
+            scene_id = 0
+
+        self.current_scene_id = scene_id
+        self.current_scene = self.scenes[self.current_scene_id](self)
+        self.current_scene.on_enter()
+
+    def switch_to_next_scene(self):
+        self.switch_to_scene(self.current_scene_id + 1)
 
     async def task(self):
         while True:
             key_event = self.keys.events.get()
             if key_event and key_event.released:
-                self.current_scene.on_press(key_event, self)
+                self.current_scene.on_press(key_event)
 
             await asyncio.sleep(0)
 
 
 class Scene:
-    def __init__(self):
-        # todo: on_enter and on_exit should be called by the manager
-        self.on_enter()
+    def __init__(self, manager):
+        self.manager = manager
 
     def on_enter(self):
-        print(self.text)
+        self.update_display(self.text)
+        print(f"enter {self.__class__.__name__}")
 
-    def on_exit(self):
-        pass
-
-    def on_press(self, event, manager):
+    def on_press(self, event):
         # todo: use the last button regardless of how many there are
         if event.key_number == 3:
-            manager.next_scene()
+            self.manager.switch_to_next_scene()
+
+    def on_exit(self):
+        print(f"leave {self.__class__.__name__}")
+
+    def update_display(self, text):
+        self.manager.display.update(text)
 
     @property
     def text(self):
