@@ -36,6 +36,7 @@ LOCALE = "pl"
 MOTOR_PHASE_A = board.GP26
 MOTOR_PHASE_B = board.GP27
 
+OPENING_TIME = None
 
 # Translations
 
@@ -141,6 +142,12 @@ class IdleScene(Scene):
         super().on_exit()
         self.update_clock_task.cancel()
 
+    def _format_time(self, time):
+        if not time:
+            return "--:--"
+
+        return f"{time.hour:02}:{time.minute:02}"
+
     async def update_clock(self):
         while True:
             await asyncio.sleep(5)
@@ -148,8 +155,10 @@ class IdleScene(Scene):
 
     @property
     def text_lines(self):
-        time = datetime.now()
-        return [f"{time.hour:02}:{time.minute:02}"]
+        current_time_fmt = self._format_time(datetime.now())
+        opening_time_fmt = self._format_time(OPENING_TIME)
+
+        return [f"{current_time_fmt}  ->  {opening_time_fmt}"]
 
 
 class ManualControlScene(Scene):
@@ -271,6 +280,9 @@ class AbstractTimeScene(Scene):
         return 9
 
     def _datetime_to_array(self, datetime):
+        if not datetime:
+            return [0, 0, 0, 0]
+
         a, b = divmod(datetime.hour, 10)
         c, d = divmod(datetime.minute, 10)
 
@@ -294,6 +306,23 @@ class AbstractTimeScene(Scene):
 
 
 class AutoOpenTimeScene(AbstractTimeScene):
+    def __init__(self, manager):
+        super().__init__(manager)
+
+        self.time = self._datetime_to_array(OPENING_TIME)
+        self.default_time = list(self.time)
+
+    def on_exit(self):
+        global OPENING_TIME  # todo: do not use global variables
+
+        if self.time != self.default_time:
+            OPENING_TIME = self._array_to_datetime(self.time)
+            print("setting up new opening time")
+        else:
+            print("no opening time change")
+
+        super().on_exit()
+
     @property
     def text_lines(self):
         ok_str = _("OK") if self._is_date_valid() else ""
@@ -314,12 +343,12 @@ class CurrentTimeScene(AbstractTimeScene):
         self.default_time = list(self.time)
 
     def on_exit(self):
-        if self.default_time != self.time:
+        if self.time != self.default_time:
             dt = self._array_to_datetime(self.time)
             RTC().datetime = dt.timetuple()
-            print("setting up new time")
+            print("setting up new current time")
         else:
-            print("no time change")
+            print("no current time change")
 
         super().on_exit()
 
