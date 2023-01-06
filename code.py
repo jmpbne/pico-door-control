@@ -2,6 +2,7 @@
 import board
 import displayio
 from busio import I2C
+from digitalio import DigitalInOut, Direction
 from displayio import Group, I2CDisplay
 from keypad import Keys
 from rtc import RTC
@@ -32,8 +33,8 @@ FONT_HEIGHT = 16
 
 LOCALE = "pl"
 
-MOTOR_MIN_SPEED = 20
-MOTOR_MAX_SPEED = 100
+MOTOR_PHASE_A = board.GP26
+MOTOR_PHASE_B = board.GP27
 
 
 # Translations
@@ -152,21 +153,62 @@ class IdleScene(Scene):
 
 
 class ManualControlScene(Scene):
+    BACKWARDS = 0
+    FORWARDS = 1
+
+    def __init__(self, manager):
+        super().__init__(manager)
+        self.manual_control_task = None
+
     def on_press(self, event):
+        if self.manual_control_task:
+            return
+
         if event.key_number == 1:
-            print("close the door")
+            coro = self.manual_control(ManualControlScene.BACKWARDS)
+            self.manual_control_task = asyncio.create_task(coro)
+            self.update_display()
         elif event.key_number == 2:
-            print("open the door")
+            coro = self.manual_control(ManualControlScene.FORWARDS)
+            self.manual_control_task = asyncio.create_task(coro)
+            self.update_display()
         elif event.key_number == 3:
             super().on_press(event)
 
+    async def manual_control(self, direction):
+        phase_a = DigitalInOut(MOTOR_PHASE_A)
+        phase_a.direction = Direction.OUTPUT
+
+        phase_b = DigitalInOut(MOTOR_PHASE_B)
+        phase_b.direction = Direction.OUTPUT
+
+        if direction == ManualControlScene.BACKWARDS:
+            phase_a.value = True
+            phase_b.value = False
+        elif direction == ManualControlScene.FORWARDS:
+            phase_a.value = False
+            phase_b.value = True
+
+        await asyncio.sleep(1.0)
+
+        phase_a.value = False
+        phase_b.value = False
+
+        self.manual_control_task = None
+        self.update_display()
+
     @property
     def text_lines(self):
+        if not self.manual_control_task:
+            last_line = f"      v  ^  {_('OK')}"
+        else:
+            last_line = ""
+
         return [
             _("Manual control"),
             "",
             "",
-            f"      v  ^  {_('OK')}",
+            last_line,
         ]
 
 
@@ -280,7 +322,6 @@ class CurrentTimeScene(AbstractTimeScene):
             self._get_cursor_string(),
             f"{_('Reset')} v  >  {ok_str}",
         ]
-
 
 
 # Display
