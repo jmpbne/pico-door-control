@@ -1,10 +1,10 @@
 # Built-in
 import board
 import displayio
-import rtc
 from busio import I2C
 from displayio import Group, I2CDisplay
 from keypad import Keys
+from rtc import RTC
 
 # CircuitPython library bundle
 import asyncio
@@ -40,16 +40,18 @@ MOTOR_MAX_SPEED = 100
 
 TRANSLATIONS = {
     "en": {
-        "Reset": "Reset",
+        "Current time": "Current time",
+        "Manual control": "Manual control",
         "OK": "  OK",
         "Open time": "Open time",
-        "Manual control": "Manual control",
+        "Reset": "Reset",
     },
     "pl": {
-        "Reset": "Reset",
+        "Current time": "Aktualny czas",
+        "Manual control": "Sterowanie reczne",
         "OK": "  OK",
         "Open time": "Czas otwarcia",
-        "Manual control": "Sterowanie reczne",
+        "Reset": "Reset",
     },
 }
 
@@ -168,7 +170,7 @@ class ManualControlScene(Scene):
         ]
 
 
-class AutoOpenTimeScene(Scene):
+class AbstractTimeScene(Scene):
     def __init__(self, manager):
         super().__init__(manager)
 
@@ -200,11 +202,8 @@ class AutoOpenTimeScene(Scene):
                 super().on_press(event)
 
     def _is_date_valid(self):
-        hour = 10 * self.time[0] + self.time[1]
-        minute = 10 * self.time[2] + self.time[3]
-
         try:
-            time(hour, minute)
+            self._array_to_datetime(self.time)
         except ValueError:
             return False
         else:
@@ -218,6 +217,18 @@ class AutoOpenTimeScene(Scene):
 
         return 9
 
+    def _datetime_to_array(self, datetime):
+        a, b = divmod(datetime.hour, 10)
+        c, d = divmod(datetime.minute, 10)
+
+        return [a, b, c, d]
+
+    def _array_to_datetime(self, array):
+        hour = 10 * array[0] + array[1]
+        minute = 10 * array[2] + array[3]
+
+        return datetime(2000, 1, 1, hour, minute, 0)
+
     def _get_time_string(self):
         return f"{self.time[0]}{self.time[1]}:{self.time[2]}{self.time[3]}"
 
@@ -228,6 +239,8 @@ class AutoOpenTimeScene(Scene):
 
         return " " * pos + "^"
 
+
+class AutoOpenTimeScene(AbstractTimeScene):
     @property
     def text_lines(self):
         ok_str = _("OK") if self._is_date_valid() else ""
@@ -238,6 +251,36 @@ class AutoOpenTimeScene(Scene):
             self._get_cursor_string(),
             f"{_('Reset')} v  >  {ok_str}",
         ]
+
+
+class CurrentTimeScene(AbstractTimeScene):
+    def __init__(self, manager):
+        super().__init__(manager)
+
+        self.time = self._datetime_to_array(datetime.now())
+        self.default_time = list(self.time)
+
+    def on_exit(self):
+        if self.default_time != self.time:
+            dt = self._array_to_datetime(self.time)
+            RTC().datetime = dt.timetuple()
+            print("setting up new time")
+        else:
+            print("no time change")
+
+        super().on_exit()
+
+    @property
+    def text_lines(self):
+        ok_str = _("OK") if self._is_date_valid() else ""
+
+        return [
+            _("Current time"),
+            self._get_time_string(),
+            self._get_cursor_string(),
+            f"{_('Reset')} v  >  {ok_str}",
+        ]
+
 
 
 # Display
@@ -292,7 +335,7 @@ def init_keys():
 
 
 def init_clock():
-    clock = rtc.RTC()
+    clock = RTC()
     clock.datetime = datetime(2000, 1, 1, 0, 0, 0).timetuple()
 
     return clock
@@ -307,7 +350,7 @@ async def main():
     init_clock()
 
     menu = MenuManager(
-        scenes=[IdleScene, ManualControlScene, AutoOpenTimeScene],
+        scenes=[IdleScene, ManualControlScene, AutoOpenTimeScene, CurrentTimeScene],
         display=display,
         keys=keys,
     )
