@@ -159,6 +159,16 @@ class ManualControlScene(Scene):
     def __init__(self, manager):
         super().__init__(manager)
         self.manual_control_task = None
+        self.phase_a = None
+        self.phase_b = None
+
+    def on_exit(self):
+        super().on_enter()
+
+        if self.phase_a:
+            self.phase_a.deinit()
+        if self.phase_b:
+            self.phase_b.deinit()
 
     def on_press(self, event):
         if self.manual_control_task:
@@ -176,23 +186,24 @@ class ManualControlScene(Scene):
             super().on_press(event)
 
     async def manual_control(self, direction):
-        phase_a = DigitalInOut(MOTOR_PHASE_A)
-        phase_a.direction = Direction.OUTPUT
-
-        phase_b = DigitalInOut(MOTOR_PHASE_B)
-        phase_b.direction = Direction.OUTPUT
+        if not self.phase_a:
+            self.phase_a = DigitalInOut(MOTOR_PHASE_A)
+            self.phase_a.direction = Direction.OUTPUT
+        if not self.phase_b:
+            self.phase_b = DigitalInOut(MOTOR_PHASE_B)
+            self.phase_b.direction = Direction.OUTPUT
 
         if direction == ManualControlScene.BACKWARDS:
-            phase_a.value = True
-            phase_b.value = False
+            self.phase_a.value = True
+            self.phase_b.value = False
         elif direction == ManualControlScene.FORWARDS:
-            phase_a.value = False
-            phase_b.value = True
+            self.phase_a.value = False
+            self.phase_b.value = True
 
         await asyncio.sleep(1.0)
 
-        phase_a.value = False
-        phase_b.value = False
+        self.phase_a.value = False
+        self.phase_b.value = False
 
         self.manual_control_task = None
         self.update_display()
