@@ -132,6 +132,8 @@ class Scene:
 class IdleScene(Scene):
     def __init__(self, manager):
         super().__init__(manager)
+
+        self.scheduled_control_task = None
         self.update_clock_task = None
 
     def on_enter(self):
@@ -142,14 +144,54 @@ class IdleScene(Scene):
         super().on_exit()
         self.update_clock_task.cancel()
 
+    def on_press(self, event):
+        if self.scheduled_control_task:
+            return
+
+        super().on_press(event)
+
     def _format_time(self, time):
         if not time:
             return "--:--"
 
         return f"{time.hour:02}:{time.minute:02}"
 
+    async def scheduled_control(self):
+        self.update_display()
+
+        phase_a = DigitalInOut(MOTOR_PHASE_A)
+        phase_a.direction = Direction.OUTPUT
+        phase_a.value = False
+
+        phase_b = DigitalInOut(MOTOR_PHASE_B)
+        phase_b.direction = Direction.OUTPUT
+        phase_b.value = True
+
+        await asyncio.sleep(5.0)
+
+        phase_a.value = False
+        phase_b.value = False
+
+        phase_a.deinit()
+        phase_b.deinit()
+
+        self.scheduled_control_task = None
+        self.update_display()
+
     async def update_clock(self):
         while True:
+            if OPENING_TIME:
+                d = datetime.now()
+                now_time = d.hour, d.minute
+                opening_time = OPENING_TIME.hour, OPENING_TIME.minute
+
+                if now_time == opening_time:
+                    print('opening the door automatically...', datetime.now())
+                    coro = self.scheduled_control()
+                    self.scheduled_control_task = asyncio.create_task(coro)
+                else:
+                    print('not opening door', datetime.now())
+
             await asyncio.sleep(5)
             self.update_display()
 
@@ -158,7 +200,12 @@ class IdleScene(Scene):
         current_time_fmt = self._format_time(datetime.now())
         opening_time_fmt = self._format_time(OPENING_TIME)
 
-        return [f"{current_time_fmt}  ->  {opening_time_fmt}"]
+        if self.scheduled_control_task:
+            is_opening_str = "opening..."  # TODO: translate
+        else:
+            is_opening_str = ""
+
+        return [f"{current_time_fmt}  ->  {opening_time_fmt}", "", "", is_opening_str]
 
 
 class ManualControlScene(Scene):
@@ -186,15 +233,15 @@ class ManualControlScene(Scene):
         if event.key_number == 1:
             coro = self.manual_control(ManualControlScene.BACKWARDS)
             self.manual_control_task = asyncio.create_task(coro)
-            self.update_display()
         elif event.key_number == 2:
             coro = self.manual_control(ManualControlScene.FORWARDS)
             self.manual_control_task = asyncio.create_task(coro)
-            self.update_display()
         elif event.key_number == 3:
             super().on_press(event)
 
     async def manual_control(self, direction):
+        self.update_display()
+
         if not self.phase_a:
             self.phase_a = DigitalInOut(MOTOR_PHASE_A)
             self.phase_a.direction = Direction.OUTPUT
