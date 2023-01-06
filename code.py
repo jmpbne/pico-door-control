@@ -30,10 +30,10 @@ DISPLAY_WIDTH = 128
 FONT_FILENAME = "/bizcat.pcf"
 FONT_HEIGHT = 16
 
+LOCALE = "pl"
+
 MOTOR_MIN_SPEED = 20
 MOTOR_MAX_SPEED = 100
-
-LOCALE = "pl"
 
 
 # Translations
@@ -126,7 +126,27 @@ class Scene:
 
 
 class IdleScene(Scene):
-    pass
+    def __init__(self, manager):
+        super().__init__(manager)
+        self.update_clock_task = None
+
+    def on_enter(self):
+        super().on_enter()
+        self.update_clock_task = asyncio.create_task(self.update_clock())
+
+    def on_exit(self):
+        super().on_exit()
+        self.update_clock_task.cancel()
+
+    async def update_clock(self):
+        while True:
+            await asyncio.sleep(5)
+            self.update_display()
+
+    @property
+    def text_lines(self):
+        time = datetime.now()
+        return [f"{time.hour:02}:{time.minute:02}"]
 
 
 class ManualControlScene(Scene):
@@ -292,7 +312,7 @@ async def main():
         keys=keys,
     )
 
-    await asyncio.create_task(menu.task())
+    await menu.task()
 
 
 if __name__ == "__main__":
