@@ -185,12 +185,13 @@ class IdleScene(Scene):
                 now_time = d.hour, d.minute
                 opening_time = OPENING_TIME.hour, OPENING_TIME.minute
 
-                if now_time == opening_time:
-                    print('opening the door automatically...', datetime.now())
+                if now_time == opening_time and not self.scheduled_control_task:
+                    # todo: open door only once
+                    print("opening the door automatically...", datetime.now())
                     coro = self.scheduled_control()
                     self.scheduled_control_task = asyncio.create_task(coro)
                 else:
-                    print('not opening door', datetime.now())
+                    print("not opening door", datetime.now())
 
             await asyncio.sleep(5)
             self.update_display()
