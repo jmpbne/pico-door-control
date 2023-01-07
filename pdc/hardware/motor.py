@@ -1,16 +1,17 @@
 from digitalio import DigitalInOut, Direction
-from microcontroller import Pin
+
+from pdc import config
 
 
 class Motor:
     CLOSE = 0
     OPEN = 1
 
-    def __init__(self, phase1_pin: Pin, phase2_pin: Pin) -> None:
-        self.phase1 = DigitalInOut(phase1_pin)
+    def __init__(self) -> None:
+        self.phase1 = DigitalInOut(config.MOTOR_PHASE1)
         self.phase1.direction = Direction.OUTPUT
 
-        self.phase2 = DigitalInOut(phase2_pin)
+        self.phase2 = DigitalInOut(config.MOTOR_PHASE2)
         self.phase2.direction = Direction.OUTPUT
 
         self.stop()
@@ -31,3 +32,7 @@ class Motor:
         # TODO: convert into context manager
         self.phase1.deinit()
         self.phase2.deinit()
+
+
+def init_motor() -> Motor:
+    return Motor()

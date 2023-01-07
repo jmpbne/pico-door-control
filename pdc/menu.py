@@ -1,6 +1,6 @@
 import asyncio
 
-from pdc.display import write
+from pdc.hardware.display import write
 
 
 class MenuManager:

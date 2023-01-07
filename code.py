@@ -1,9 +1,7 @@
 # Built-in
-import board
 import displayio
 from busio import I2C
 from displayio import Group, I2CDisplay
-from io import StringIO
 from keypad import Keys
 from rtc import RTC
 
@@ -15,6 +13,7 @@ from adafruit_display_text.label import Label
 from adafruit_displayio_sh1106 import SH1106
 
 # Custom code
+from pdc import config
 from pdc.date import (
     datetime_to_timearray,
     format_datetime,
@@ -24,48 +23,14 @@ from pdc.date import (
     is_timearray_valid,
     timearray_to_datetime,
 )
-from pdc.display import write
+from pdc.hardware.display import write
+from pdc.hardware.motor import Motor, init_motor
 from pdc.locale import get_locale_function
 from pdc.menu import MenuManager, Scene
-from pdc.motor import Motor
-
-#
-# User-configurable section
-#
-
-BUTTON_A = board.GP18
-BUTTON_B = board.GP19
-BUTTON_C = board.GP20
-BUTTON_D = board.GP21
-BUTTONS = [BUTTON_A, BUTTON_B, BUTTON_C, BUTTON_D]
-BUTTONS_VALUE_WHEN_PRESSED = False  # True = VCC, False = GND
-
-DISPLAY_ADDRESS = 0x3C
-DISPLAY_HEIGHT = 64
-DISPLAY_SCL = board.GP17
-DISPLAY_SDA = board.GP16
-DISPLAY_OFFSET_X = 2
-DISPLAY_WIDTH = 128
-
-FONT_FILENAME = "/bizcat.pcf"
-FONT_HEIGHT = 16
-FONT_WIDTH = 8
-
-LOCALE = "pl"
-
-MOTOR_PHASE1 = board.GP26
-MOTOR_PHASE2 = board.GP27
-
-# Change this setting only for debugging purposes:
-OPENING_TIME = None
-
-#
-# The code below should not be modified
-#
 
 # Translations
 
-_ = get_locale_function(LOCALE)
+_ = get_locale_function(config.LOCALE)
 
 
 # Menu
@@ -95,7 +60,7 @@ class IdleScene(Scene):
     async def scheduled_control(self):
         self.update_display()
 
-        motor = Motor(MOTOR_PHASE1, MOTOR_PHASE2)
+        motor = init_motor()
         motor.open()
         await asyncio.sleep(5.0)
         motor.stop()
@@ -166,7 +131,7 @@ class ManualControlScene(Scene):
         self.update_display()
 
         if not self.motor:
-            self.motor = Motor(MOTOR_PHASE1, MOTOR_PHASE2)
+            self.motor = init_motor()
 
         if direction == Motor.CLOSE:
             self.motor.close()
@@ -294,14 +259,14 @@ class Display:
     def __init__(self):
         displayio.release_displays()
 
-        i2c = I2C(DISPLAY_SCL, DISPLAY_SDA)
-        bus = I2CDisplay(i2c, device_address=DISPLAY_ADDRESS)
+        i2c = I2C(config.DISPLAY_SCL, config.DISPLAY_SDA)
+        bus = I2CDisplay(i2c, device_address=config.DISPLAY_ADDRESS)
 
         self.display = SH1106(
             bus,
-            width=DISPLAY_WIDTH,
-            height=DISPLAY_HEIGHT,
-            colstart=DISPLAY_OFFSET_X,
+            width=config.DISPLAY_WIDTH,
+            height=config.DISPLAY_HEIGHT,
+            colstart=config.DISPLAY_OFFSET_X,
             auto_refresh=False,
         )
 
@@ -309,11 +274,11 @@ class Display:
         self.display.show(Group())
         self.display.auto_refresh = True
 
-        self._font = bitmap_font.load_font(FONT_FILENAME)
+        self._font = bitmap_font.load_font(config.FONT_FILENAME)
 
     def update(self, data):
-        buffer_width = DISPLAY_WIDTH // FONT_WIDTH
-        buffer_height = DISPLAY_HEIGHT // FONT_HEIGHT
+        buffer_width = config.DISPLAY_WIDTH // config.FONT_WIDTH
+        buffer_height = config.DISPLAY_HEIGHT // config.FONT_HEIGHT
         buffer = " " * buffer_width * buffer_height
 
         for row, col, text, condition in data:
@@ -331,7 +296,7 @@ class Display:
 
             text_area = Label(self._font, text=text, color=0xFFFFFF)
             text_area.x = 0
-            text_area.y = (FONT_HEIGHT // 2) + FONT_HEIGHT * row_idx
+            text_area.y = (config.FONT_HEIGHT // 2) + config.FONT_HEIGHT * row_idx
 
             group.append(text_area)
 
@@ -346,7 +311,7 @@ def init_display():
 
 
 def init_keys():
-    return Keys(BUTTONS, value_when_pressed=BUTTONS_VALUE_WHEN_PRESSED)
+    return Keys(config.BUTTONS, value_when_pressed=config.BUTTONS_VALUE_WHEN_PRESSED)
 
 
 # Clock
