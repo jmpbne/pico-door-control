@@ -2,7 +2,6 @@
 import board
 import displayio
 from busio import I2C
-from digitalio import DigitalInOut, Direction
 from displayio import Group, I2CDisplay
 from io import StringIO
 from keypad import Keys
@@ -28,6 +27,11 @@ from pdc.date import (
 from pdc.display import write
 from pdc.locale import get_locale_function
 from pdc.menu import MenuManager, Scene
+from pdc.motor import Motor
+
+#
+# User-configurable section
+#
 
 BUTTON_A = board.GP18
 BUTTON_B = board.GP19
@@ -49,10 +53,15 @@ FONT_WIDTH = 8
 
 LOCALE = "pl"
 
-MOTOR_PHASE_A = board.GP26
-MOTOR_PHASE_B = board.GP27
+MOTOR_PHASE1 = board.GP26
+MOTOR_PHASE2 = board.GP27
 
+# Change this setting only for debugging purposes:
 OPENING_TIME = None
+
+#
+# The code below should not be modified
+#
 
 # Translations
 
@@ -86,22 +95,11 @@ class IdleScene(Scene):
     async def scheduled_control(self):
         self.update_display()
 
-        # todo: encapsulate and reuse motor code (create, deinit, control)
-        phase_a = DigitalInOut(MOTOR_PHASE_A)
-        phase_a.direction = Direction.OUTPUT
-        phase_a.value = False
-
-        phase_b = DigitalInOut(MOTOR_PHASE_B)
-        phase_b.direction = Direction.OUTPUT
-        phase_b.value = True
-
+        motor = Motor(MOTOR_PHASE1, MOTOR_PHASE2)
+        motor.open()
         await asyncio.sleep(5.0)
-
-        phase_a.value = False
-        phase_b.value = False
-
-        phase_a.deinit()
-        phase_b.deinit()
+        motor.stop()
+        motor.deinit()
 
         self.scheduled_control_task = None
         self.update_display()
@@ -135,32 +133,26 @@ class IdleScene(Scene):
 
 
 class ManualControlScene(Scene):
-    BACKWARDS = 0
-    FORWARDS = 1
-
     def __init__(self, manager):
         super().__init__(manager)
         self.manual_control_task = None
-        self.phase_a = None
-        self.phase_b = None
+        self.motor = None
 
     def on_exit(self):
         super().on_enter()
 
-        if self.phase_a:
-            self.phase_a.deinit()
-        if self.phase_b:
-            self.phase_b.deinit()
+        if self.motor:
+            self.motor.deinit()
 
     def on_press(self, event):
         if self.manual_control_task:
             return
 
         if event.key_number == 1:
-            coro = self.manual_control(ManualControlScene.BACKWARDS)
+            coro = self.manual_control(Motor.CLOSE)
             self.manual_control_task = asyncio.create_task(coro)
         elif event.key_number == 2:
-            coro = self.manual_control(ManualControlScene.FORWARDS)
+            coro = self.manual_control(Motor.OPEN)
             self.manual_control_task = asyncio.create_task(coro)
         elif event.key_number == 3:
             super().on_press(event)
@@ -168,24 +160,16 @@ class ManualControlScene(Scene):
     async def manual_control(self, direction):
         self.update_display()
 
-        if not self.phase_a:
-            self.phase_a = DigitalInOut(MOTOR_PHASE_A)
-            self.phase_a.direction = Direction.OUTPUT
-        if not self.phase_b:
-            self.phase_b = DigitalInOut(MOTOR_PHASE_B)
-            self.phase_b.direction = Direction.OUTPUT
+        if not self.motor:
+            self.motor = Motor(MOTOR_PHASE1, MOTOR_PHASE2)
 
-        if direction == ManualControlScene.BACKWARDS:
-            self.phase_a.value = True
-            self.phase_b.value = False
-        elif direction == ManualControlScene.FORWARDS:
-            self.phase_a.value = False
-            self.phase_b.value = True
+        if direction == Motor.CLOSE:
+            self.motor.close()
+        elif direction == Motor.OPEN:
+            self.motor.open()
 
         await asyncio.sleep(1.0)
-
-        self.phase_a.value = False
-        self.phase_b.value = False
+        self.motor.stop()
 
         self.manual_control_task = None
         self.update_display()
