@@ -75,19 +75,19 @@ class IdleScene(Scene):
     def __init__(self, manager):
         super().__init__(manager)
 
-        self.scheduled_control_task = None
-        self.update_clock_task = None
+        self.clock_task = None
+        self.control_task = None
 
     def on_enter(self):
         super().on_enter()
-        self.update_clock_task = asyncio.create_task(self.update_clock())
+        self.clock_task = asyncio.create_task(self.update_clock())
 
     def on_exit(self):
         super().on_exit()
-        self.update_clock_task.cancel()
+        self.clock_task.cancel()
 
     def on_press(self, event):
-        if self.scheduled_control_task:
+        if self.control_task:
             return
 
         super().on_press(event)
@@ -101,7 +101,7 @@ class IdleScene(Scene):
         motor.stop()
         motor.deinit()
 
-        self.scheduled_control_task = None
+        self.control_task = None
         self.update_display()
 
     async def update_clock(self):
@@ -111,11 +111,11 @@ class IdleScene(Scene):
                 now_time = d.hour, d.minute
                 opening_time = OPENING_TIME.hour, OPENING_TIME.minute
 
-                if now_time == opening_time and not self.scheduled_control_task:
+                if now_time == opening_time and not self.control_task:
                     # todo: open door only once
                     print("opening the door automatically...", datetime.now())
                     coro = self.scheduled_control()
-                    self.scheduled_control_task = asyncio.create_task(coro)
+                    self.control_task = asyncio.create_task(coro)
                 else:
                     print("not opening door", datetime.now())
 
@@ -128,34 +128,39 @@ class IdleScene(Scene):
             write(0, 0, format_datetime(datetime.now())),
             write(0, 7, "->"),
             write(0, 11, format_datetime(OPENING_TIME)),
-            write(3, 0, _("Opening..."), cond=self.scheduled_control_task),
+            write(3, 0, _("Opening..."), cond=self.control_task),
         ]
 
 
 class ManualControlScene(Scene):
     def __init__(self, manager):
         super().__init__(manager)
-        self.manual_control_task = None
+
+        self.control_task = None
         self.motor = None
 
     def on_exit(self):
-        super().on_enter()
-
         if self.motor:
             self.motor.deinit()
 
+        super().on_exit()
+
     def on_press(self, event):
-        if self.manual_control_task:
+        if self.control_task:
             return
 
         if event.key_number == 1:
-            coro = self.manual_control(Motor.CLOSE)
-            self.manual_control_task = asyncio.create_task(coro)
+            self._motor_close()
         elif event.key_number == 2:
-            coro = self.manual_control(Motor.OPEN)
-            self.manual_control_task = asyncio.create_task(coro)
+            self._motor_open()
         elif event.key_number == 3:
-            super().on_press(event)
+            self.next_scene()
+
+    def _motor_close(self):
+        self.control_task = asyncio.create_task(self.manual_control(Motor.CLOSE))
+
+    def _motor_open(self):
+        self.control_task = asyncio.create_task(self.manual_control(Motor.OPEN))
 
     async def manual_control(self, direction):
         self.update_display()
@@ -171,14 +176,14 @@ class ManualControlScene(Scene):
         await asyncio.sleep(1.0)
         self.motor.stop()
 
-        self.manual_control_task = None
+        self.control_task = None
         self.update_display()
 
     @property
     def display_commands(self):
         return [
             write(0, 0, _("Manual control")),
-            write(3, 0, f"       ↓ ↑    {_('OK')}", cond=not self.manual_control_task),
+            write(3, 0, f"       ↓ ↑    {_('OK')}", cond=not self.control_task),
         ]
 
 
@@ -193,25 +198,36 @@ class AbstractTimeScene(Scene):
 
     def on_press(self, event):
         if event.key_number == 0:
-            self.time = list(self.default_time)
-            self.update_display()
+            self._reset_time()
         elif event.key_number == 1:
-            digit = self.time[self.cursor_position]
-            digit += 1
-            if digit > get_max_value_for_timearray_digit(self.cursor_position):
-                digit = 0
-            self.time[self.cursor_position] = digit
-            self.update_display()
+            self._change_digit()
         elif event.key_number == 2:
-            pos = self.cursor_position
-            pos += 1
-            if pos == len(self.time):
-                pos = 0
-            self.cursor_position = pos
-            self.update_display()
+            self._change_position()
         elif event.key_number == 3:
             if is_timearray_valid(self.time):
                 super().on_press(event)
+
+    def _reset_time(self):
+        self.time = list(self.default_time)
+        self.update_display()
+
+    def _change_digit(self):
+        # todo: move to pdc.date
+        digit = self.time[self.cursor_position]
+        digit += 1
+        if digit > get_max_value_for_timearray_digit(self.cursor_position):
+            digit = 0
+        self.time[self.cursor_position] = digit
+        self.update_display()
+
+    def _change_position(self):
+        # todo: move to pdc.date
+        pos = self.cursor_position
+        pos += 1
+        if pos == len(self.time):
+            pos = 0
+        self.cursor_position = pos
+        self.update_display()
 
 
 class AutoOpenTimeScene(AbstractTimeScene):

@@ -51,10 +51,13 @@ class Scene:
         print(f"enter {self.__class__.__name__}")
 
     def on_press(self, event):
-        self.manager.switch_to_next_scene()
+        self.next_scene()
 
     def on_exit(self):
         print(f"leave {self.__class__.__name__}")
+
+    def next_scene(self):
+        self.manager.switch_to_next_scene()
 
     def update_display(self):
         self.manager.display.update(self.display_commands)
