@@ -1,5 +1,7 @@
 import asyncio
 
+from pdc.display import write
+
 
 class MenuManager:
     """
@@ -55,8 +57,8 @@ class Scene:
         print(f"leave {self.__class__.__name__}")
 
     def update_display(self):
-        self.manager.display.update(self.text_lines)
+        self.manager.display.update(self.display_commands)
 
     @property
-    def text_lines(self):
-        return [self.__class__.__name__]
+    def display_commands(self):
+        return [write(0, 0, self.__class__.__name__)]

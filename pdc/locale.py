@@ -8,7 +8,8 @@ TRANSLATIONS = {
         "Current time": "Aktualny czas",
         "Manual control": "Sterowanie reczne",
         "OK": "OK",
-        "Open time": "Czas otwarcia",
+        "Opening time": "Czas otwarcia",
+        "Opening...": "Otwieranie...",
         "Reset": "Reset",
     }
 }

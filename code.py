@@ -4,6 +4,7 @@ import displayio
 from busio import I2C
 from digitalio import DigitalInOut, Direction
 from displayio import Group, I2CDisplay
+from io import StringIO
 from keypad import Keys
 from rtc import RTC
 
@@ -24,6 +25,7 @@ from pdc.date import (
     is_timearray_valid,
     timearray_to_datetime,
 )
+from pdc.display import write
 from pdc.locale import get_locale_function
 from pdc.menu import MenuManager, Scene
 
@@ -43,6 +45,7 @@ DISPLAY_WIDTH = 128
 
 FONT_FILENAME = "/bizcat.pcf"
 FONT_HEIGHT = 16
+FONT_WIDTH = 8
 
 LOCALE = "pl"
 
@@ -122,16 +125,13 @@ class IdleScene(Scene):
             self.update_display()
 
     @property
-    def text_lines(self):
-        current_time_fmt = format_datetime(datetime.now())
-        opening_time_fmt = format_datetime(OPENING_TIME)
-
-        if self.scheduled_control_task:
-            is_opening_str = "opening..."  # TODO: translate
-        else:
-            is_opening_str = ""
-
-        return [f"{current_time_fmt}  ->  {opening_time_fmt}", "", "", is_opening_str]
+    def display_commands(self):
+        return [
+            write(0, 0, format_datetime(datetime.now())),
+            write(0, 7, "->"),
+            write(0, 11, format_datetime(OPENING_TIME)),
+            write(3, 0, _("Opening..."), cond=self.scheduled_control_task),
+        ]
 
 
 class ManualControlScene(Scene):
@@ -191,17 +191,10 @@ class ManualControlScene(Scene):
         self.update_display()
 
     @property
-    def text_lines(self):
-        if not self.manual_control_task:
-            last_line = f"      v  ^    {_('OK')}"
-        else:
-            last_line = ""
-
+    def display_commands(self):
         return [
-            _("Manual control"),
-            "",
-            "",
-            last_line,
+            write(0, 0, _("Manual control")),
+            write(3, 0, f"      v  ^    {_('OK')}", cond=not self.manual_control_task),
         ]
 
 
@@ -256,17 +249,13 @@ class AutoOpenTimeScene(AbstractTimeScene):
         super().on_exit()
 
     @property
-    def text_lines(self):
-        if is_timearray_valid(self.time):
-            ok_str = _("OK")
-        else:
-            ok_str = ""
-
+    def display_commands(self):
         return [
-            _("Open time"),
-            format_timearray(self.time),
-            format_timearray_cursor(self.cursor_position),
-            f"{_('Reset')} v  >    {ok_str}",
+            write(0, 0, _("Opening time")),
+            write(1, 0, format_timearray(self.time)),
+            write(2, 0, format_timearray_cursor(self.cursor_position)),
+            write(3, 0, f"{_('Reset')} v  >"),
+            write(3, 14, _("OK"), cond=is_timearray_valid(self.time)),
         ]
 
 
@@ -288,17 +277,13 @@ class CurrentTimeScene(AbstractTimeScene):
         super().on_exit()
 
     @property
-    def text_lines(self):
-        if is_timearray_valid(self.time):
-            ok_str = _("OK")
-        else:
-            ok_str = ""
-
+    def display_commands(self):
         return [
-            _("Current time"),
-            format_timearray(self.time),
-            format_timearray_cursor(self.cursor_position),
-            f"{_('Reset')} v  >    {ok_str}",
+            write(0, 0, _("Current time")),
+            write(1, 0, format_timearray(self.time)),
+            write(2, 0, format_timearray_cursor(self.cursor_position)),
+            write(3, 0, f"{_('Reset')} v  >"),
+            write(3, 14, _("OK"), cond=is_timearray_valid(self.time)),
         ]
 
 
@@ -324,13 +309,27 @@ class Display:
         self.display.show(Group())
         self.display.auto_refresh = True
 
-        self.font = bitmap_font.load_font(FONT_FILENAME)
+        self._font = bitmap_font.load_font(FONT_FILENAME)
 
-    def update(self, text_lines):
+    def update(self, data):
+        width = DISPLAY_WIDTH // FONT_WIDTH
+        height = DISPLAY_HEIGHT // FONT_HEIGHT
+
+        buffer = StringIO()
+        buffer.write(" " * width * height)
+
+        for row, col, text, condition in data:
+            if condition:
+                buffer.seek(row * width + col)
+                buffer.write(text)
+
+        buffer.seek(0)
+
         group = Group()
 
-        for idx, text_line in enumerate(text_lines):
-            text_area = Label(self.font, text=text_line, color=0xFFFFFF)
+        for idx in range(height):
+            text = buffer.read(width)
+            text_area = Label(self._font, text=text, color=0xFFFFFF)
             text_area.x = 0
             text_area.y = (FONT_HEIGHT // 2) + FONT_HEIGHT * idx
 
