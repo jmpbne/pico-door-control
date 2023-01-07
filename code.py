@@ -18,8 +18,16 @@ from pdc.hardware.rtc import init_clock, set_clock
 from pdc.locale import get_locale_function
 from pdc.menu import MenuManager, Scene
 
+try:
+    from typing import Optional
+except ImportError:
+    Optional = ...
+
 
 _ = get_locale_function(config.LOCALE)
+
+
+OPENING_TIME: Optional[datetime] = None
 
 
 class IdleScene(Scene):

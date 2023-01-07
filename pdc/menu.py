@@ -1,6 +1,18 @@
+from keypad import Keys
+
 import asyncio
 
-from pdc.hardware.display import write
+from pdc.hardware.display import Display, write
+
+try:
+    from typing import List, NoReturn, Type
+
+    from pdc.hardware.display import WriteCommand
+except ImportError:
+    List = ...
+    NoReturn = ...
+    Type = ...
+    WriteCommand = ...
 
 
 class MenuManager:
@@ -9,7 +21,9 @@ class MenuManager:
     (OLED display module and buttons).
     """
 
-    def __init__(self, *, scenes, display, keys):
+    def __init__(
+        self, *, scenes: List[Type["Scene"]], display: Display, keys: Keys
+    ) -> None:
         self.display = display
         self.keys = keys
 
@@ -19,7 +33,7 @@ class MenuManager:
 
         self.switch_to_scene(0)
 
-    def switch_to_scene(self, scene_id):
+    def switch_to_scene(self, scene_id: int) -> None:
         if self.current_scene:
             self.current_scene.on_exit()
 
@@ -30,10 +44,10 @@ class MenuManager:
         self.current_scene = self.scenes[self.current_scene_id](self)
         self.current_scene.on_enter()
 
-    def switch_to_next_scene(self):
+    def switch_to_next_scene(self) -> None:
         self.switch_to_scene(self.current_scene_id + 1)
 
-    async def task(self):
+    async def task(self) -> NoReturn:
         while True:
             key_event = self.keys.events.get()
             if key_event and key_event.released:
@@ -43,25 +57,25 @@ class MenuManager:
 
 
 class Scene:
-    def __init__(self, manager):
+    def __init__(self, manager: MenuManager) -> None:
         self.manager = manager
 
-    def on_enter(self):
+    def on_enter(self) -> None:
         self.update_display()
         print(f"enter {self.__class__.__name__}")
 
-    def on_press(self, event):
+    def on_press(self, event: ...) -> None:  # todo: what is the event type?
         self.next_scene()
 
-    def on_exit(self):
+    def on_exit(self) -> None:
         print(f"leave {self.__class__.__name__}")
 
-    def next_scene(self):
+    def next_scene(self) -> None:
         self.manager.switch_to_next_scene()
 
-    def update_display(self):
+    def update_display(self) -> None:
         self.manager.display.update(self.display_commands)
 
     @property
-    def display_commands(self):
+    def display_commands(self) -> List[WriteCommand]:
         return [write(0, 0, self.__class__.__name__)]

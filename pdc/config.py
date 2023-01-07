@@ -29,7 +29,3 @@ LOCALE = "pl"
 
 MOTOR_PHASE1 = board.GP26
 MOTOR_PHASE2 = board.GP27
-
-# This is the application state variable.
-# Change this setting only for debugging purposes.
-OPENING_TIME: Optional[datetime] = None
