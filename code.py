@@ -14,6 +14,17 @@ from adafruit_datetime import datetime, time
 from adafruit_display_text.label import Label
 from adafruit_displayio_sh1106 import SH1106
 
+# Custom code
+from pdc.date import (
+    datetime_to_timearray,
+    format_datetime,
+    format_timearray,
+    format_timearray_cursor,
+    get_max_value_for_timearray_digit,
+    is_timearray_valid,
+    timearray_to_datetime,
+)
+
 BUTTON_A = board.GP18
 BUTTON_B = board.GP19
 BUTTON_C = board.GP20
@@ -150,15 +161,10 @@ class IdleScene(Scene):
 
         super().on_press(event)
 
-    def _format_time(self, time):
-        if not time:
-            return "--:--"
-
-        return f"{time.hour:02}:{time.minute:02}"
-
     async def scheduled_control(self):
         self.update_display()
 
+        # todo: encapsulate and reuse motor code (create, deinit, control)
         phase_a = DigitalInOut(MOTOR_PHASE_A)
         phase_a.direction = Direction.OUTPUT
         phase_a.value = False
@@ -198,8 +204,8 @@ class IdleScene(Scene):
 
     @property
     def text_lines(self):
-        current_time_fmt = self._format_time(datetime.now())
-        opening_time_fmt = self._format_time(OPENING_TIME)
+        current_time_fmt = format_datetime(datetime.now())
+        opening_time_fmt = format_datetime(OPENING_TIME)
 
         if self.scheduled_control_task:
             is_opening_str = "opening..."  # TODO: translate
@@ -296,7 +302,7 @@ class AbstractTimeScene(Scene):
         elif event.key_number == 1:
             digit = self.time[self.cursor_position]
             digit += 1
-            if digit > self._get_max_digit(self.cursor_position):
+            if digit > get_max_value_for_timearray_digit(self.cursor_position):
                 digit = 0
             self.time[self.cursor_position] = digit
             self.update_display()
@@ -308,63 +314,22 @@ class AbstractTimeScene(Scene):
             self.cursor_position = pos
             self.update_display()
         elif event.key_number == 3:
-            if self._is_date_valid():
+            if is_timearray_valid(self.time):
                 super().on_press(event)
-
-    def _is_date_valid(self):
-        try:
-            self._array_to_datetime(self.time)
-        except ValueError:
-            return False
-        else:
-            return True
-
-    def _get_max_digit(self, position):
-        if position == 0:
-            return 2
-        if position == 2:
-            return 5
-
-        return 9
-
-    def _datetime_to_array(self, datetime):
-        if not datetime:
-            return [0, 0, 0, 0]
-
-        a, b = divmod(datetime.hour, 10)
-        c, d = divmod(datetime.minute, 10)
-
-        return [a, b, c, d]
-
-    def _array_to_datetime(self, array):
-        hour = 10 * array[0] + array[1]
-        minute = 10 * array[2] + array[3]
-
-        return datetime(2000, 1, 1, hour, minute, 0)
-
-    def _get_time_string(self):
-        return f"{self.time[0]}{self.time[1]}:{self.time[2]}{self.time[3]}"
-
-    def _get_cursor_string(self):
-        pos = self.cursor_position
-        if pos > 1:
-            pos += 1  # offset for colon
-
-        return " " * pos + "^"
 
 
 class AutoOpenTimeScene(AbstractTimeScene):
     def __init__(self, manager):
         super().__init__(manager)
 
-        self.time = self._datetime_to_array(OPENING_TIME)
+        self.time = datetime_to_timearray(OPENING_TIME)
         self.default_time = list(self.time)
 
     def on_exit(self):
         global OPENING_TIME  # todo: do not use global variables
 
         if self.time != self.default_time:
-            OPENING_TIME = self._array_to_datetime(self.time)
+            OPENING_TIME = timearray_to_datetime(self.time)
             print("setting up new opening time")
         else:
             print("no opening time change")
@@ -373,12 +338,15 @@ class AutoOpenTimeScene(AbstractTimeScene):
 
     @property
     def text_lines(self):
-        ok_str = _("OK") if self._is_date_valid() else ""
+        if is_timearray_valid(self.time):
+            ok_str = _("OK")
+        else:
+            ok_str = ""
 
         return [
             _("Open time"),
-            self._get_time_string(),
-            self._get_cursor_string(),
+            format_timearray(self.time),
+            format_timearray_cursor(self.cursor_position),
             f"{_('Reset')} v  >  {ok_str}",
         ]
 
@@ -387,12 +355,12 @@ class CurrentTimeScene(AbstractTimeScene):
     def __init__(self, manager):
         super().__init__(manager)
 
-        self.time = self._datetime_to_array(datetime.now())
+        self.time = datetime_to_timearray(datetime.now())
         self.default_time = list(self.time)
 
     def on_exit(self):
         if self.time != self.default_time:
-            dt = self._array_to_datetime(self.time)
+            dt = timearray_to_datetime(self.time)
             RTC().datetime = dt.timetuple()
             print("setting up new current time")
         else:
@@ -402,12 +370,15 @@ class CurrentTimeScene(AbstractTimeScene):
 
     @property
     def text_lines(self):
-        ok_str = _("OK") if self._is_date_valid() else ""
+        if is_timearray_valid(self.time):
+            ok_str = _("OK")
+        else:
+            ok_str = ""
 
         return [
             _("Current time"),
-            self._get_time_string(),
-            self._get_cursor_string(),
+            format_timearray(self.time),
+            format_timearray_cursor(self.cursor_position),
             f"{_('Reset')} v  >  {ok_str}",
         ]
 
