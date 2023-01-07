@@ -32,7 +32,7 @@ def format_timearray_cursor(position: int) -> str:
     if position > 1:
         position += 1
 
-    return " " * position + "^"
+    return " " * position + "‾"
 
 
 def get_max_value_for_timearray_digit(position: int) -> int:

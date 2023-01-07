@@ -178,7 +178,7 @@ class ManualControlScene(Scene):
     def display_commands(self):
         return [
             write(0, 0, _("Manual control")),
-            write(3, 0, f"      v  ^    {_('OK')}", cond=not self.manual_control_task),
+            write(3, 0, f"       ↓ ↑    {_('OK')}", cond=not self.manual_control_task),
         ]
 
 
@@ -238,7 +238,7 @@ class AutoOpenTimeScene(AbstractTimeScene):
             write(0, 0, _("Opening time")),
             write(1, 0, format_timearray(self.time)),
             write(2, 0, format_timearray_cursor(self.cursor_position)),
-            write(3, 0, f"{_('Reset')} v  >"),
+            write(3, 0, f"{_('Reset')}  ↓ →"),
             write(3, 14, _("OK"), cond=is_timearray_valid(self.time)),
         ]
 
@@ -266,7 +266,7 @@ class CurrentTimeScene(AbstractTimeScene):
             write(0, 0, _("Current time")),
             write(1, 0, format_timearray(self.time)),
             write(2, 0, format_timearray_cursor(self.cursor_position)),
-            write(3, 0, f"{_('Reset')} v  >"),
+            write(3, 0, f"{_('Reset')}  ↓ →"),
             write(3, 14, _("OK"), cond=is_timearray_valid(self.time)),
         ]
 
