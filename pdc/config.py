@@ -1,5 +1,12 @@
 import board
 
+from adafruit_datetime import datetime
+
+try:
+    from typing import Optional
+except ImportError:
+    Optional = ...
+
 BUTTON_A = board.GP18
 BUTTON_B = board.GP19
 BUTTON_C = board.GP20
@@ -25,4 +32,4 @@ MOTOR_PHASE2 = board.GP27
 
 # This is the application state variable.
 # Change this setting only for debugging purposes.
-OPENING_TIME = None
+OPENING_TIME: Optional[datetime] = None

@@ -1,18 +1,6 @@
-# Built-in
-import displayio
-from busio import I2C
-from displayio import Group, I2CDisplay
-from keypad import Keys
-from rtc import RTC
-
-# CircuitPython library bundle
 import asyncio
-from adafruit_bitmap_font import bitmap_font
 from adafruit_datetime import datetime
-from adafruit_display_text.label import Label
-from adafruit_displayio_sh1106 import SH1106
 
-# Custom code
 from pdc import config
 from pdc.date import (
     datetime_to_timearray,
@@ -23,17 +11,15 @@ from pdc.date import (
     is_timearray_valid,
     timearray_to_datetime,
 )
-from pdc.hardware.display import write
+from pdc.hardware.display import init_display, write
+from pdc.hardware.keys import init_keys
 from pdc.hardware.motor import Motor, init_motor
+from pdc.hardware.rtc import init_clock, set_clock
 from pdc.locale import get_locale_function
 from pdc.menu import MenuManager, Scene
 
-# Translations
 
 _ = get_locale_function(config.LOCALE)
-
-
-# Menu
 
 
 class IdleScene(Scene):
@@ -203,7 +189,8 @@ class AutoOpenTimeScene(AbstractTimeScene):
         self.default_time = list(self.time)
 
     def on_exit(self):
-        global OPENING_TIME  # todo: do not use global variables
+        # todo: do not use global variables
+        global OPENING_TIME
 
         if self.time != self.default_time:
             OPENING_TIME = timearray_to_datetime(self.time)
@@ -233,8 +220,7 @@ class CurrentTimeScene(AbstractTimeScene):
 
     def on_exit(self):
         if self.time != self.default_time:
-            dt = timearray_to_datetime(self.time)
-            RTC().datetime = dt.timetuple()
+            set_clock(timearray_to_datetime(self.time).timetuple())
             print("setting up new current time")
         else:
             print("no current time change")
@@ -250,81 +236,6 @@ class CurrentTimeScene(AbstractTimeScene):
             write(3, 0, f"{_('Reset')}  ↓ →"),
             write(3, 14, _("OK"), cond=is_timearray_valid(self.time)),
         ]
-
-
-# Display
-
-
-class Display:
-    def __init__(self):
-        displayio.release_displays()
-
-        i2c = I2C(config.DISPLAY_SCL, config.DISPLAY_SDA)
-        bus = I2CDisplay(i2c, device_address=config.DISPLAY_ADDRESS)
-
-        self.display = SH1106(
-            bus,
-            width=config.DISPLAY_WIDTH,
-            height=config.DISPLAY_HEIGHT,
-            colstart=config.DISPLAY_OFFSET_X,
-            auto_refresh=False,
-        )
-
-        # workaround - do not show REPL on boot
-        self.display.show(Group())
-        self.display.auto_refresh = True
-
-        self._font = bitmap_font.load_font(config.FONT_FILENAME)
-
-    def update(self, data):
-        buffer_width = config.DISPLAY_WIDTH // config.FONT_WIDTH
-        buffer_height = config.DISPLAY_HEIGHT // config.FONT_HEIGHT
-        buffer = " " * buffer_width * buffer_height
-
-        for row, col, text, condition in data:
-            if condition:
-                text_start = row * buffer_width + col
-                text_end = text_start + len(text)
-                buffer = buffer[:text_start] + text + buffer[text_end:]
-
-        group = Group()
-
-        for row_idx in range(buffer_height):
-            text_start = row_idx * buffer_width
-            text_end = text_start + buffer_width
-            text = buffer[text_start:text_end]
-
-            text_area = Label(self._font, text=text, color=0xFFFFFF)
-            text_area.x = 0
-            text_area.y = (config.FONT_HEIGHT // 2) + config.FONT_HEIGHT * row_idx
-
-            group.append(text_area)
-
-        self.display.show(group)
-
-
-def init_display():
-    return Display()
-
-
-# Keys
-
-
-def init_keys():
-    return Keys(config.BUTTONS, value_when_pressed=config.BUTTONS_VALUE_WHEN_PRESSED)
-
-
-# Clock
-
-
-def init_clock():
-    clock = RTC()
-    clock.datetime = datetime(2000, 1, 1, 0, 0, 0).timetuple()
-
-    return clock
-
-
-# Main
 
 
 async def main():
