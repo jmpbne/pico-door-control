@@ -296,26 +296,26 @@ class Display:
         self._font = bitmap_font.load_font(FONT_FILENAME)
 
     def update(self, data):
-        width = DISPLAY_WIDTH // FONT_WIDTH
-        height = DISPLAY_HEIGHT // FONT_HEIGHT
-
-        buffer = StringIO()
-        buffer.write(" " * width * height)
+        buffer_width = DISPLAY_WIDTH // FONT_WIDTH
+        buffer_height = DISPLAY_HEIGHT // FONT_HEIGHT
+        buffer = " " * buffer_width * buffer_height
 
         for row, col, text, condition in data:
             if condition:
-                buffer.seek(row * width + col)
-                buffer.write(text)
-
-        buffer.seek(0)
+                text_start = row * buffer_width + col
+                text_end = text_start + len(text)
+                buffer = buffer[:text_start] + text + buffer[text_end:]
 
         group = Group()
 
-        for idx in range(height):
-            text = buffer.read(width)
+        for row_idx in range(buffer_height):
+            text_start = row_idx * buffer_width
+            text_end = text_start + buffer_width
+            text = buffer[text_start:text_end]
+
             text_area = Label(self._font, text=text, color=0xFFFFFF)
             text_area.x = 0
-            text_area.y = (FONT_HEIGHT // 2) + FONT_HEIGHT * idx
+            text_area.y = (FONT_HEIGHT // 2) + FONT_HEIGHT * row_idx
 
             group.append(text_area)
 
