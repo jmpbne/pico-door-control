@@ -24,6 +24,7 @@ from pdc.date import (
     is_timearray_valid,
     timearray_to_datetime,
 )
+from pdc.locale import get_locale_function
 
 BUTTON_A = board.GP18
 BUTTON_B = board.GP19
@@ -51,29 +52,7 @@ OPENING_TIME = None
 
 # Translations
 
-TRANSLATIONS = {
-    "en": {
-        "Current time": "Current time",
-        "Manual control": "Manual control",
-        "OK": "  OK",
-        "Open time": "Open time",
-        "Reset": "Reset",
-    },
-    "pl": {
-        "Current time": "Aktualny czas",
-        "Manual control": "Sterowanie reczne",
-        "OK": "  OK",
-        "Open time": "Czas otwarcia",
-        "Reset": "Reset",
-    },
-}
-
-
-def _(phrase):
-    try:
-        return TRANSLATIONS[LOCALE][phrase]
-    except KeyError:
-        return "???"
+_ = get_locale_function(LOCALE)
 
 
 # Menu
@@ -274,7 +253,7 @@ class ManualControlScene(Scene):
     @property
     def text_lines(self):
         if not self.manual_control_task:
-            last_line = f"      v  ^  {_('OK')}"
+            last_line = f"      v  ^    {_('OK')}"
         else:
             last_line = ""
 
@@ -347,7 +326,7 @@ class AutoOpenTimeScene(AbstractTimeScene):
             _("Open time"),
             format_timearray(self.time),
             format_timearray_cursor(self.cursor_position),
-            f"{_('Reset')} v  >  {ok_str}",
+            f"{_('Reset')} v  >    {ok_str}",
         ]
 
 
@@ -379,7 +358,7 @@ class CurrentTimeScene(AbstractTimeScene):
             _("Current time"),
             format_timearray(self.time),
             format_timearray_cursor(self.cursor_position),
-            f"{_('Reset')} v  >  {ok_str}",
+            f"{_('Reset')} v  >    {ok_str}",
         ]
 
 
