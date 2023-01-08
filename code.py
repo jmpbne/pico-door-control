@@ -101,6 +101,7 @@ class ManualControlScene(Scene):
 
         self.control_task = None
         self.motor = None
+        self.percentage = 30
 
     def on_exit(self) -> None:
         if self.motor:
@@ -112,12 +113,21 @@ class ManualControlScene(Scene):
         if self.control_task:
             return
 
+        if event.key_number == 0:
+            self._change_percentage()
         if event.key_number == 1:
             self._motor_close()
         elif event.key_number == 2:
             self._motor_open()
         elif event.key_number == 3:
             self.next_scene()
+
+    def _change_percentage(self) -> None:
+        self.percentage += 10
+        if self.percentage > 100:
+            self.percentage = 30
+
+        self.update_display()
 
     def _motor_close(self) -> None:
         self.control_task = asyncio.create_task(self.manual_control(Motor.CLOSE))
@@ -132,9 +142,9 @@ class ManualControlScene(Scene):
             self.motor = init_motor()
 
         if direction == Motor.CLOSE:
-            self.motor.close()
+            self.motor.close(self.percentage)
         elif direction == Motor.OPEN:
-            self.motor.open()
+            self.motor.open(self.percentage)
 
         await asyncio.sleep(1.0)
         self.motor.stop()
@@ -147,6 +157,7 @@ class ManualControlScene(Scene):
         return [
             write(0, 0, _("Manual control")),
             write(3, 0, f"       ↓ ↑    {_('OK')}", cond=not self.control_task),
+            write(3, 0, f"{self.percentage}%"),
         ]
 
 
