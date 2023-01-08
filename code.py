@@ -29,7 +29,7 @@ except ImportError:
 
 _ = get_locale_function(config.LOCALE)
 
-OPENING_DURATION: Optional[int] = 0
+OPENING_DURATION = config.MOTOR_DURATION_DEFAULT
 OPENING_TIME: Optional[datetime] = None
 
 
