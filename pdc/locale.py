@@ -9,7 +9,8 @@ TRANSLATIONS = {
         "Manual control": "Sterowanie reczne",
         "OK": "OK",
         "Opening duration": "Czas otwierania",
-        "Opening timer": "Godzina otwarcia",
+        "Opening speed": "Predkosc otwierania",
+        "Opening timer": "Godzina otwierania",
         "Opening...": "Otwieranie...",
         "Reset": "Reset",
     }

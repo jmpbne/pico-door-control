@@ -30,6 +30,7 @@ except ImportError:
 _ = get_locale_function(config.LOCALE)
 
 OPENING_DURATION = config.MOTOR_DURATION_DEFAULT
+OPENING_DUTY_CYCLE = config.MOTOR_DUTY_CYCLE_DEFAULT
 OPENING_TIME: Optional[datetime] = None
 
 
@@ -59,7 +60,7 @@ class IdleScene(Scene):
 
         print("opening the door automatically...", datetime.now())
         motor = init_motor()
-        motor.open()
+        motor.open(OPENING_DUTY_CYCLE)
         await asyncio.sleep(OPENING_DURATION / 1000.0)
         motor.stop()
         motor.deinit()
@@ -101,7 +102,7 @@ class ManualControlScene(Scene):
 
         self.control_task = None
         self.motor = None
-        self.percentage = config.MOTOR_DUTY_CYCLE_MIN
+        self.percentage = OPENING_DUTY_CYCLE
 
     def on_exit(self) -> None:
         if self.motor:
@@ -287,6 +288,59 @@ class AutoOpenDurationScene(Scene):
         ]
 
 
+class AutoOpenSpeedScene(Scene):
+    def __init__(self, manager: MenuManager) -> None:
+        super().__init__(manager)
+
+        self.percentage = OPENING_DUTY_CYCLE
+        self.default_percentage = OPENING_DUTY_CYCLE
+
+    def on_exit(self) -> None:
+        # todo: do not use global variables
+        global OPENING_DUTY_CYCLE
+
+        OPENING_DUTY_CYCLE = self.percentage
+        print("changed opening percentage")
+
+        super().on_exit()
+
+    def on_press(self, event: Event) -> None:
+        if event.key_number == 0:
+            self._reset_value()
+        elif event.key_number == 1:
+            self._decrease_value()
+        elif event.key_number == 2:
+            self._increase_value()
+        elif event.key_number == 3:
+            self.next_scene()
+
+    def _reset_value(self) -> None:
+        self.percentage = self.default_percentage
+        self.update_display()
+
+    def _decrease_value(self) -> None:
+        if self.percentage > config.MOTOR_DUTY_CYCLE_MIN:
+            self.percentage -= config.MOTOR_DUTY_CYCLE_STEP
+            self.update_display()
+
+    def _increase_value(self) -> None:
+        if self.percentage < config.MOTOR_DUTY_CYCLE_MAX:
+            self.percentage += config.MOTOR_DUTY_CYCLE_STEP
+            self.update_display()
+
+    def _format_percentage(self) -> str:
+        # todo: move to separate file
+        return f"{self.percentage}%"
+
+    @property
+    def display_commands(self) -> List[WriteCommand]:
+        return [
+            write(0, 0, _("Opening speed")),
+            write(1, 0, self._format_percentage()),
+            write(3, 0, f"{_('Reset')}  ↓ ↑    {_('OK')}"),
+        ]
+
+
 class CurrentTimeScene(AbstractTimeScene):
     def __init__(self, manager: MenuManager) -> None:
         super().__init__(manager)
@@ -325,6 +379,7 @@ async def main() -> NoReturn:
             ManualControlScene,
             AutoOpenTimeScene,
             AutoOpenDurationScene,
+            AutoOpenSpeedScene,
             CurrentTimeScene,
         ],
         display=display,
