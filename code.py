@@ -1,7 +1,7 @@
 from keypad import Event
 
 import asyncio
-from adafruit_datetime import datetime
+from adafruit_datetime import datetime, timedelta
 
 from pdc import config
 from pdc.date import (
@@ -39,7 +39,7 @@ class IdleScene(Scene):
         super().__init__(manager)
 
         self.clock_task = None
-        self.control_task = None
+        self.is_opening = False
 
     def on_enter(self) -> None:
         super().on_enter()
@@ -50,39 +50,13 @@ class IdleScene(Scene):
         self.clock_task.cancel()
 
     def on_press(self, event: Event) -> None:
-        if self.control_task:
+        if self.is_opening:
             return
 
         super().on_press(event)
 
-    async def scheduled_control(self) -> None:
-        self.update_display()
-
-        print("opening the door automatically...", datetime.now())
-        motor = init_motor()
-        motor.open(OPENING_DUTY_CYCLE)
-        await asyncio.sleep(OPENING_DURATION / 1000.0)
-        motor.stop()
-        motor.deinit()
-        print("door opened", datetime.now())
-
-        self.control_task = None
-        self.update_display()
-
     async def update_clock(self) -> NoReturn:
         while True:
-            if OPENING_TIME:
-                d = datetime.now()
-                now_time = d.hour, d.minute
-                opening_time = OPENING_TIME.hour, OPENING_TIME.minute
-
-                if now_time == opening_time and not self.control_task:
-                    # todo: open door only once
-                    coro = self.scheduled_control()
-                    self.control_task = asyncio.create_task(coro)
-                else:
-                    print("not opening door", datetime.now())
-
             await asyncio.sleep(5)
             self.update_display()
 
@@ -92,7 +66,7 @@ class IdleScene(Scene):
             write(0, 0, format_datetime(datetime.now())),
             write(0, 7, "->"),
             write(0, 11, format_datetime(OPENING_TIME)),
-            write(3, 0, _("Opening..."), cond=self.control_task),
+            write(3, 0, _("Opening..."), cond=self.is_opening),
         ]
 
 
@@ -368,6 +342,47 @@ class CurrentTimeScene(AbstractTimeScene):
         ]
 
 
+async def control(manager: MenuManager) -> NoReturn:
+    # todo: do not use global variables
+    global OPENING_TIME
+
+    while True:
+        # TODO: when changing the opening time (making it 2000-01-01), change opening date as well
+        # TODO: when changing the current time (making it 2000-01-01), change opening date as well
+        current = datetime.now()
+        opening = OPENING_TIME
+
+        print(current, "->", opening)
+
+        if (
+            opening
+            and current.day == opening.day
+            and current.hour == opening.hour
+            and current.minute == opening.minute
+        ):
+            if manager.current_scene_id == 0:
+                # todo: use context manager to lock keys temporarily
+                manager.current_scene.is_opening = True
+                manager.current_scene.update_display()
+
+                print("opening the door automatically...", datetime.now())
+                motor = init_motor()
+                motor.open(OPENING_DUTY_CYCLE)
+                await asyncio.sleep(OPENING_DURATION / 1000.0)
+                motor.stop()
+                motor.deinit()
+                print("door opened", datetime.now())
+
+                manager.current_scene.is_opening = False
+                manager.current_scene.update_display()
+
+            print(f"old time was {OPENING_TIME}")
+            OPENING_TIME = OPENING_TIME + timedelta(days=1)
+            print(f"new time is {OPENING_TIME}")
+
+        await asyncio.sleep(5)
+
+
 async def main() -> NoReturn:
     display = init_display()
     keys = init_keys()
@@ -386,7 +401,10 @@ async def main() -> NoReturn:
         keys=keys,
     )
 
-    await menu.task()
+    menu_task = asyncio.create_task(menu.task())
+    control_task = asyncio.create_task(control(menu))
+
+    await asyncio.gather(menu_task, control_task)
 
 
 if __name__ == "__main__":
