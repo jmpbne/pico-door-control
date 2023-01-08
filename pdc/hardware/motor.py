@@ -3,6 +3,9 @@ from digitalio import DigitalInOut, Direction
 from pdc import config
 
 
+MotorDirection = int
+
+
 class Motor:
     CLOSE = 0
     OPEN = 1

@@ -1,12 +1,5 @@
 import board
 
-from adafruit_datetime import datetime
-
-try:
-    from typing import Optional
-except ImportError:
-    Optional = ...
-
 BUTTON_A = board.GP18
 BUTTON_B = board.GP19
 BUTTON_C = board.GP20
@@ -27,5 +20,8 @@ FONT_WIDTH = 8
 
 LOCALE = "pl"
 
+MOTOR_DURATION_MAX = 5000
+MOTOR_DURATION_MIN = 0
+MOTOR_DURATION_STEP = 250
 MOTOR_PHASE1 = board.GP26
 MOTOR_PHASE2 = board.GP27

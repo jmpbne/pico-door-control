@@ -5,10 +5,11 @@ except ImportError:
 
 TRANSLATIONS = {
     "pl": {
-        "Current time": "Aktualny czas",
+        "Current time": "Aktualna godzina",
         "Manual control": "Sterowanie reczne",
         "OK": "OK",
-        "Opening time": "Czas otwarcia",
+        "Opening duration": "Czas otwierania",
+        "Opening timer": "Godzina otwarcia",
         "Opening...": "Otwieranie...",
         "Reset": "Reset",
     }

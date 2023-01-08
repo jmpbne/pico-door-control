@@ -1,4 +1,4 @@
-from keypad import Keys
+from keypad import Event, Keys
 
 import asyncio
 
@@ -64,7 +64,7 @@ class Scene:
         self.update_display()
         print(f"enter {self.__class__.__name__}")
 
-    def on_press(self, event: ...) -> None:  # todo: what is the event type?
+    def on_press(self, event: Event) -> None:
         self.next_scene()
 
     def on_exit(self) -> None:
