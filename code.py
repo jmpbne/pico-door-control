@@ -29,6 +29,7 @@ except ImportError:
 
 _ = get_locale_function(config.LOCALE)
 
+OPENING_COOLDOWN = False
 OPENING_DURATION = config.MOTOR_DURATION_DEFAULT
 OPENING_DUTY_CYCLE = config.MOTOR_DUTY_CYCLE_DEFAULT
 OPENING_TIME: Optional[datetime] = None
@@ -188,10 +189,12 @@ class AutoOpenTimeScene(AbstractTimeScene):
 
     def on_exit(self) -> None:
         # todo: do not use global variables
+        global OPENING_COOLDOWN
         global OPENING_TIME
 
         if self.time != self.default_time:
             OPENING_TIME = timearray_to_datetime(self.time)
+            OPENING_COOLDOWN = False
             print("setting up new opening time")
         else:
             print("no opening time change")
@@ -323,8 +326,11 @@ class CurrentTimeScene(AbstractTimeScene):
         self.default_time = list(self.time)
 
     def on_exit(self) -> None:
+        global OPENING_COOLDOWN
+
         if self.time != self.default_time:
             set_clock(timearray_to_datetime(self.time).timetuple())
+            OPENING_COOLDOWN = False
             print("setting up new current time")
         else:
             print("no current time change")
@@ -344,11 +350,10 @@ class CurrentTimeScene(AbstractTimeScene):
 
 async def control(manager: MenuManager) -> NoReturn:
     # todo: do not use global variables
+    global OPENING_COOLDOWN
     global OPENING_TIME
 
     while True:
-        # TODO: when changing the opening time (making it 2000-01-01), change opening date as well
-        # TODO: when changing the current time (making it 2000-01-01), change opening date as well
         current = datetime.now()
         opening = OPENING_TIME
 
@@ -356,11 +361,12 @@ async def control(manager: MenuManager) -> NoReturn:
 
         if (
             opening
-            and current.day == opening.day
             and current.hour == opening.hour
             and current.minute == opening.minute
         ):
-            if manager.current_scene_id == 0:
+            if OPENING_COOLDOWN:
+                print("cooldown")
+            elif manager.current_scene_id == 0:
                 # todo: use context manager to lock keys temporarily
                 manager.current_scene.is_opening = True
                 manager.current_scene.update_display()
@@ -376,9 +382,11 @@ async def control(manager: MenuManager) -> NoReturn:
                 manager.current_scene.is_opening = False
                 manager.current_scene.update_display()
 
-            print(f"old time was {OPENING_TIME}")
-            OPENING_TIME = OPENING_TIME + timedelta(days=1)
-            print(f"new time is {OPENING_TIME}")
+                OPENING_COOLDOWN = True
+            else:
+                print("not opening door, go back to IdleScene")
+        else:
+            OPENING_COOLDOWN = False
 
         await asyncio.sleep(5)
 
