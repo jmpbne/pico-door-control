@@ -57,11 +57,13 @@ class IdleScene(Scene):
     async def scheduled_control(self) -> None:
         self.update_display()
 
+        print("opening the door automatically...", datetime.now())
         motor = init_motor()
         motor.open()
-        await asyncio.sleep(5.0)
+        await asyncio.sleep(OPENING_DURATION / 1000.0)
         motor.stop()
         motor.deinit()
+        print("door opened", datetime.now())
 
         self.control_task = None
         self.update_display()
@@ -75,7 +77,6 @@ class IdleScene(Scene):
 
                 if now_time == opening_time and not self.control_task:
                     # todo: open door only once
-                    print("opening the door automatically...", datetime.now())
                     coro = self.scheduled_control()
                     self.control_task = asyncio.create_task(coro)
                 else:
@@ -228,6 +229,15 @@ class AutoOpenDurationScene(Scene):
 
         self.duration = OPENING_DURATION
         self.default_duration = OPENING_DURATION
+
+    def on_exit(self) -> None:
+        # todo: do not use global variables
+        global OPENING_DURATION
+
+        OPENING_DURATION = self.duration
+        print("changed opening duration")
+
+        super().on_exit()
 
     def on_press(self, event: Event) -> None:
         if event.key_number == 0:
