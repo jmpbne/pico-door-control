@@ -101,7 +101,7 @@ class ManualControlScene(Scene):
 
         self.control_task = None
         self.motor = None
-        self.percentage = 30
+        self.percentage = config.MOTOR_DUTY_CYCLE_MIN
 
     def on_exit(self) -> None:
         if self.motor:
@@ -123,9 +123,9 @@ class ManualControlScene(Scene):
             self.next_scene()
 
     def _change_percentage(self) -> None:
-        self.percentage += 10
-        if self.percentage > 100:
-            self.percentage = 30
+        self.percentage += config.MOTOR_DUTY_CYCLE_STEP
+        if self.percentage > config.MOTOR_DUTY_CYCLE_MAX:
+            self.percentage = config.MOTOR_DUTY_CYCLE_MIN
 
         self.update_display()
 
