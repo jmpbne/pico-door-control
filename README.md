@@ -8,3 +8,7 @@
 - SH1106 I2C OLED display
 - DS3231 I2C RTC module
 - 4x Button
+
+## Hardware prototype
+
+![](assets/bb.png)
