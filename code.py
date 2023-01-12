@@ -72,6 +72,8 @@ class IdleScene(Scene):
             write(0, 7, "->"),
             write(0, 11, format_datetime(OPENING_TIME)),
             write(3, 0, _("Opening..."), cond=self.is_opening),
+            write(3, 0, _("Disp.Off"), cond=not self.is_opening),
+            write(3, 12, _("Menu"), cond=not self.is_opening),
         ]
 
 
