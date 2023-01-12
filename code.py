@@ -54,7 +54,11 @@ class IdleScene(Scene):
         if self.is_opening:
             return
 
-        super().on_press(event)
+        if event.key_number == 0:
+            self.manager.display.toggle()
+        elif event.key_number == 3:
+            if self.manager.display.is_awake:
+                self.next_scene()
 
     async def update_clock(self) -> NoReturn:
         while True:

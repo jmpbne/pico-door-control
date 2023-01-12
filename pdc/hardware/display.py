@@ -66,6 +66,16 @@ class Display:
 
         self.display.show(group)
 
+    def toggle(self) -> None:
+        if self.display.is_awake:
+            self.display.sleep()
+        else:
+            self.display.wake()
+
+    @property
+    def is_awake(self) -> bool:
+        return self.display.is_awake
+
 
 def init_display() -> Display:
     return Display()
