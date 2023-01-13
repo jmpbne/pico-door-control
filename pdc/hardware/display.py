@@ -32,6 +32,7 @@ class Display:
             height=config.DISPLAY_HEIGHT,
             colstart=config.DISPLAY_OFFSET_X,
             auto_refresh=False,
+            brightness=0.0,
         )
 
         # workaround - do not show REPL on boot
