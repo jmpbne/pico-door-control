@@ -58,7 +58,8 @@ class IdleScene(Scene):
     async def update_clock(self) -> NoReturn:
         while True:
             await asyncio.sleep(5)
-            self.update_display()
+            if state.is_display_awake():
+                self.update_display()
 
     @property
     def display_commands(self) -> List[WriteCommand]:
@@ -349,7 +350,7 @@ async def control(manager: MenuManager) -> NoReturn:
             and current.hour == opening.hour
             and current.minute == opening.minute
         ):
-            if state.get_opening_cooldown():
+            if state.is_opening_cooldown():
                 print("cooldown")
             elif manager.current_scene_id == 0:
                 # todo: use context manager to lock keys temporarily

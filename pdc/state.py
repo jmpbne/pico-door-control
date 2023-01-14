@@ -7,12 +7,14 @@ try:
 except ImportError:
     Any = ...
 
+DISPLAY_AWAKE = "display_awake"
 OPENING_COOLDOWN = "opening_cooldown"
 OPENING_DURATION = "opening_duration"
 OPENING_DUTY_CYCLE = "opening_duty_cycle"
 OPENING_TIME = "opening_time"
 
 _state = {
+    DISPLAY_AWAKE: True,
     OPENING_COOLDOWN: False,
     OPENING_DURATION: config.MOTOR_DURATION_DEFAULT,
     OPENING_DUTY_CYCLE: config.MOTOR_DUTY_CYCLE_DEFAULT,
@@ -30,7 +32,11 @@ def put(key: str, value: Any) -> None:
         print("New state:", _state)
 
 
-def get_opening_cooldown() -> bool:
+def is_display_awake() -> bool:
+    return get(DISPLAY_AWAKE)
+
+
+def is_opening_cooldown() -> bool:
     return get(OPENING_COOLDOWN)
 
 
@@ -44,6 +50,10 @@ def get_opening_duty_cycle() -> int:
 
 def get_opening_time() -> datetime:
     return get(OPENING_TIME)
+
+
+def set_display_awake(value: bool) -> None:
+    put(DISPLAY_AWAKE, value)
 
 
 def set_opening_cooldown(value: bool) -> None:

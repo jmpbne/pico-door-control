@@ -6,7 +6,7 @@ from adafruit_bitmap_font import bitmap_font
 from adafruit_display_text.bitmap_label import Label
 from adafruit_displayio_sh1106 import SH1106
 
-from pdc import config
+from pdc import config, state
 
 try:
     from typing import Any, List, Tuple
@@ -68,10 +68,12 @@ class Display:
         self.display.show(group)
 
     def toggle(self) -> None:
-        if self.display.is_awake:
+        if state.is_display_awake():
             self.display.sleep()
+            state.set_display_awake(False)
         else:
             self.display.wake()
+            state.set_display_awake(True)
 
     @property
     def is_awake(self) -> bool:
