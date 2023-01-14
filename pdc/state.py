@@ -1,3 +1,5 @@
+import json
+
 from adafruit_datetime import datetime
 
 from pdc import config
@@ -24,6 +26,17 @@ DEFAULT_VALUES = {
 _state = {}
 
 
+def dump() -> str:
+    return json.dumps({k: cast_for_dump(v) for k, v in _state.items()})
+
+
+def cast_for_dump(value: Any) -> Any:
+    try:
+        return value.isoformat()
+    except AttributeError:
+        return value
+
+
 def get(key: str) -> Any:
     return _state.get(key, DEFAULT_VALUES.get(key))
 
@@ -31,7 +44,7 @@ def get(key: str) -> Any:
 def put(key: str, value: Any) -> None:
     if get(key) != value:
         _state[key] = value
-        print("New state:", _state)
+        print("New state:", dump())
 
 
 def is_display_awake() -> bool:
