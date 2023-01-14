@@ -3,7 +3,7 @@ from keypad import Event
 import asyncio
 from adafruit_datetime import datetime, timedelta
 
-from pdc import config
+from pdc import config, state
 from pdc.date import (
     datetime_to_timearray,
     format_datetime,
@@ -28,11 +28,6 @@ except ImportError:
     Optional = ...
 
 _ = get_locale_function(config.LOCALE)
-
-OPENING_COOLDOWN = False
-OPENING_DURATION = config.MOTOR_DURATION_DEFAULT
-OPENING_DUTY_CYCLE = config.MOTOR_DUTY_CYCLE_DEFAULT
-OPENING_TIME: Optional[datetime] = None
 
 
 class IdleScene(Scene):
@@ -70,7 +65,7 @@ class IdleScene(Scene):
         return [
             write(0, 0, format_datetime(datetime.now())),
             write(0, 7, "->"),
-            write(0, 11, format_datetime(OPENING_TIME)),
+            write(0, 11, format_datetime(state.get_opening_time())),
             write(3, 0, _("Opening..."), cond=self.is_opening),
             write(3, 0, _("Disp.Off"), cond=not self.is_opening),
             write(3, 12, _("Menu"), cond=not self.is_opening),
@@ -83,7 +78,7 @@ class ManualControlScene(Scene):
 
         self.control_task = None
         self.motor = None
-        self.percentage = OPENING_DUTY_CYCLE
+        self.percentage = state.get_opening_duty_cycle()
 
     def on_exit(self) -> None:
         if self.motor:
@@ -190,17 +185,13 @@ class AutoOpenTimeScene(AbstractTimeScene):
     def __init__(self, manager: MenuManager) -> None:
         super().__init__(manager)
 
-        self.time = datetime_to_timearray(OPENING_TIME)
+        self.time = datetime_to_timearray(state.get_opening_time())
         self.default_time = list(self.time)
 
     def on_exit(self) -> None:
-        # todo: do not use global variables
-        global OPENING_COOLDOWN
-        global OPENING_TIME
-
         if self.time != self.default_time:
-            OPENING_TIME = timearray_to_datetime(self.time)
-            OPENING_COOLDOWN = False
+            state.set_opening_time(timearray_to_datetime(self.time))
+            state.set_opening_cooldown(False)
             print("setting up new opening time")
         else:
             print("no opening time change")
@@ -222,14 +213,11 @@ class AutoOpenDurationScene(Scene):
     def __init__(self, manager: MenuManager) -> None:
         super().__init__(manager)
 
-        self.duration = OPENING_DURATION
-        self.default_duration = OPENING_DURATION
+        self.duration = state.get_opening_duration()
+        self.default_duration = state.get_opening_duration()
 
     def on_exit(self) -> None:
-        # todo: do not use global variables
-        global OPENING_DURATION
-
-        OPENING_DURATION = self.duration
+        state.set_opening_duration(self.duration)
         print("changed opening duration")
 
         super().on_exit()
@@ -275,14 +263,11 @@ class AutoOpenSpeedScene(Scene):
     def __init__(self, manager: MenuManager) -> None:
         super().__init__(manager)
 
-        self.percentage = OPENING_DUTY_CYCLE
-        self.default_percentage = OPENING_DUTY_CYCLE
+        self.percentage = state.get_opening_duty_cycle()
+        self.default_percentage = state.get_opening_duty_cycle()
 
     def on_exit(self) -> None:
-        # todo: do not use global variables
-        global OPENING_DUTY_CYCLE
-
-        OPENING_DUTY_CYCLE = self.percentage
+        state.set_opening_duty_cycle(self.percentage)
         print("changed opening percentage")
 
         super().on_exit()
@@ -332,11 +317,9 @@ class CurrentTimeScene(AbstractTimeScene):
         self.default_time = list(self.time)
 
     def on_exit(self) -> None:
-        global OPENING_COOLDOWN
-
         if self.time != self.default_time:
             set_clock(timearray_to_datetime(self.time).timetuple())
-            OPENING_COOLDOWN = False
+            state.set_opening_cooldown(False)
             print("setting up new current time")
         else:
             print("no current time change")
@@ -355,13 +338,9 @@ class CurrentTimeScene(AbstractTimeScene):
 
 
 async def control(manager: MenuManager) -> NoReturn:
-    # todo: do not use global variables
-    global OPENING_COOLDOWN
-    global OPENING_TIME
-
     while True:
         current = datetime.now()
-        opening = OPENING_TIME
+        opening = state.get_opening_time()
 
         print(current, "->", opening)
 
@@ -370,7 +349,7 @@ async def control(manager: MenuManager) -> NoReturn:
             and current.hour == opening.hour
             and current.minute == opening.minute
         ):
-            if OPENING_COOLDOWN:
+            if state.get_opening_cooldown():
                 print("cooldown")
             elif manager.current_scene_id == 0:
                 # todo: use context manager to lock keys temporarily
@@ -379,8 +358,8 @@ async def control(manager: MenuManager) -> NoReturn:
 
                 print("opening the door automatically...", datetime.now())
                 motor = init_motor()
-                motor.open(OPENING_DUTY_CYCLE)
-                await asyncio.sleep(OPENING_DURATION / 1000.0)
+                motor.open(state.get_opening_duty_cycle())
+                await asyncio.sleep(state.get_opening_duration() / 1000.0)
                 motor.stop()
                 motor.deinit()
                 print("door opened", datetime.now())
@@ -388,11 +367,11 @@ async def control(manager: MenuManager) -> NoReturn:
                 manager.current_scene.is_opening = False
                 manager.current_scene.update_display()
 
-                OPENING_COOLDOWN = True
+                state.set_opening_cooldown(True)
             else:
                 print("not opening door, go back to IdleScene")
         else:
-            OPENING_COOLDOWN = False
+            state.set_opening_cooldown(False)
 
         await asyncio.sleep(5)
 
