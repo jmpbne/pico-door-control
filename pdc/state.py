@@ -13,7 +13,7 @@ OPENING_DURATION = "opening_duration"
 OPENING_DUTY_CYCLE = "opening_duty_cycle"
 OPENING_TIME = "opening_time"
 
-_state = {
+DEFAULT_VALUES = {
     DISPLAY_AWAKE: True,
     OPENING_COOLDOWN: False,
     OPENING_DURATION: config.MOTOR_DURATION_DEFAULT,
@@ -21,9 +21,11 @@ _state = {
     OPENING_TIME: None,
 }
 
+_state = {}
+
 
 def get(key: str) -> Any:
-    return _state.get(key)
+    return _state.get(key, DEFAULT_VALUES.get(key))
 
 
 def put(key: str, value: Any) -> None:
