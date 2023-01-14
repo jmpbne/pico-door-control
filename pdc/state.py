@@ -9,11 +9,11 @@ try:
 except ImportError:
     Any = ...
 
-DISPLAY_AWAKE = "display_awake"
-OPENING_COOLDOWN = "opening_cooldown"
-OPENING_DURATION = "opening_duration"
-OPENING_DUTY_CYCLE = "opening_duty_cycle"
-OPENING_TIME = "opening_time"
+DISPLAY_AWAKE = "da"
+OPENING_COOLDOWN = "oc"
+OPENING_DURATION = "od"
+OPENING_DUTY_CYCLE = "op"
+OPENING_TIME = "ot"
 
 DEFAULT_VALUES = {
     DISPLAY_AWAKE: True,
