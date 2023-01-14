@@ -1,5 +1,4 @@
 import displayio
-from busio import I2C
 from displayio import Group, I2CDisplay
 
 from adafruit_bitmap_font import bitmap_font
@@ -7,6 +6,7 @@ from adafruit_display_text.bitmap_label import Label
 from adafruit_displayio_sh1106 import SH1106
 
 from pdc import config, state
+from pdc.hardware.i2c import i2c
 
 try:
     from typing import Any, List, Tuple
@@ -23,8 +23,7 @@ class Display:
     def __init__(self) -> None:
         displayio.release_displays()
 
-        i2c = I2C(config.DISPLAY_SCL, config.DISPLAY_SDA)
-        bus = I2CDisplay(i2c, device_address=config.DISPLAY_ADDRESS)
+        bus = I2CDisplay(i2c, device_address=config.I2C_ADDRESS_DISPLAY)
 
         self.display = SH1106(
             bus,
