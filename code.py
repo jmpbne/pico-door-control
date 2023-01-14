@@ -382,6 +382,8 @@ async def main() -> NoReturn:
     keys = init_keys()
     init_clock()
 
+    state.load_from_eeprom()
+
     menu = MenuManager(
         scenes=[
             IdleScene,

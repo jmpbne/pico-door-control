@@ -24,4 +24,5 @@ def dump(data: str) -> None:
     data_str = data + "\x00"
     data_bytes = data_str.encode()
 
-    _eeprom[0:len(data_bytes)] = data_bytes
+    print("Writing to EEPROM", data_bytes)
+    _eeprom[0 : len(data_bytes)] = data_bytes

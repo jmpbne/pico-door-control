@@ -3,6 +3,7 @@ import json
 from adafruit_datetime import datetime
 
 from pdc import config
+from pdc.hardware import eeprom
 
 try:
     from typing import Any
@@ -26,10 +27,11 @@ DEFAULT_VALUES = {
 _state = {}
 
 
-def dump() -> str:
-    return json.dumps(
+def dump_to_eeprom() -> None:
+    raw = json.dumps(
         {k: dump_value(v) for k, v in _state.items()}, separators=(",", ":")
     )
+    eeprom.dump(raw)
 
 
 def dump_value(value: Any) -> Any:
@@ -39,9 +41,11 @@ def dump_value(value: Any) -> Any:
         return value
 
 
-def load(data: str) -> None:
+def load_from_eeprom() -> None:
+    raw = eeprom.load()
+
     _state.clear()
-    _state.update({k: load_value(v) for k, v in json.loads(data).items()})
+    _state.update({k: load_value(v) for k, v in json.loads(raw).items()})
 
 
 def load_value(value: Any) -> Any:
@@ -58,7 +62,7 @@ def get(key: str) -> Any:
 def put(key: str, value: Any) -> None:
     if get(key) != value:
         _state[key] = value
-        print("New state:", dump())
+        dump_to_eeprom()
 
 
 def is_display_awake() -> bool:
