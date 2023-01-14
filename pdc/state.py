@@ -27,13 +27,27 @@ _state = {}
 
 
 def dump() -> str:
-    return json.dumps({k: cast_for_dump(v) for k, v in _state.items()})
+    return json.dumps(
+        {k: dump_value(v) for k, v in _state.items()}, separators=(",", ":")
+    )
 
 
-def cast_for_dump(value: Any) -> Any:
+def dump_value(value: Any) -> Any:
     try:
         return value.isoformat()
     except AttributeError:
+        return value
+
+
+def load(data: str) -> None:
+    _state.clear()
+    _state.update({k: load_value(v) for k, v in json.loads(data).items()})
+
+
+def load_value(value: Any) -> Any:
+    try:
+        return datetime.fromisoformat(str(value))
+    except ValueError:
         return value
 
 
