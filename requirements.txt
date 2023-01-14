@@ -1,6 +1,7 @@
+adafruit_24lc32==1.0.8
 adafruit_bitmap_font==1.5.11
 adafruit_datetime==1.2.3
-adafruit_display_text==2.23.0
 adafruit_displayio_sh1106==1.2.10
+adafruit_display_text==2.23.0
 adafruit_ticks==1.0.9
 asyncio==0.5.19
