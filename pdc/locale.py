@@ -8,6 +8,8 @@ TRANSLATIONS = {
         "Current time": "Aktualna godzina",
         "Disp.Off": "Wył.ekran",
         "Manual control": "Sterowanie ręczne",
+        "Now:": "Teraz:",
+        "Open at:": "Otwórz o:",
         "Opening duration": "Czas otwierania",
         "Opening speed": "Prędkość otwierania",
         "Opening timer": "Godzina otwierania",

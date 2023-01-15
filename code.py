@@ -53,9 +53,10 @@ class IdleScene(Scene):
     @property
     def display_commands(self) -> List[WriteCommand]:
         return [
-            write(0, 0, date.format_datetime(datetime.now())),
-            write(0, 7, "->"),
-            write(0, 11, date.format_datetime(state.get_opening_time())),
+            write(0, 0, _("Now:")),
+            write(0, 10, date.format_datetime(datetime.now())),
+            write(1, 0, _("Open at:")),
+            write(1, 10, date.format_datetime(state.get_opening_time())),
             write(3, 0, _("Opening..."), cond=self.is_opening),
             write(3, 0, _("Disp.Off"), cond=not self.is_opening),
             write(3, 12, _("Menu"), cond=not self.is_opening),
