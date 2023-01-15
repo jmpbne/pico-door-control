@@ -6,10 +6,10 @@ except ImportError:
 TRANSLATIONS = {
     "pl": {
         "Current time": "Aktualna godzina",
-        "Disp.Off": "Wyl.ekran",
-        "Manual control": "Sterowanie reczne",
+        "Disp.Off": "Wył.ekran",
+        "Manual control": "Sterowanie ręczne",
         "Opening duration": "Czas otwierania",
-        "Opening speed": "Predkosc otwierania",
+        "Opening speed": "Prędkość otwierania",
         "Opening timer": "Godzina otwierania",
         "Opening...": "Otwieranie...",
     }
