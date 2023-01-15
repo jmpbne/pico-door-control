@@ -1,14 +1,21 @@
 from adafruit_24lc32 import EEPROM_I2C
 
-from pdc import config
-from pdc.hardware.i2c import i2c
+from pdc import config, state
+from pdc.hardware import i2c
 
-_eeprom = EEPROM_I2C(i2c, address=config.I2C_ADDRESS_EEPROM)
+device = None
+
+
+def init_eeprom() -> None:
+    global device
+
+    device = EEPROM_I2C(i2c.device, address=config.I2C_ADDRESS_EEPROM)
+    state.load_from_eeprom()
 
 
 def load() -> str:
     try:
-        data_bytes = _eeprom[:]
+        data_bytes = device[:]
         length = data_bytes.index(b"\x00")
     except ValueError:
         data_bytes = b"{}"
@@ -25,4 +32,4 @@ def dump(data: str) -> None:
     data_bytes = data_str.encode()
 
     print("Writing to EEPROM", data_bytes)
-    _eeprom[0 : len(data_bytes)] = data_bytes
+    device[0 : len(data_bytes)] = data_bytes

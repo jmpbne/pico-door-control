@@ -1,31 +1,20 @@
 from keypad import Event
 
 import asyncio
-from adafruit_datetime import datetime, timedelta
+from adafruit_datetime import datetime
 
-from pdc import config, state
-from pdc.date import (
-    datetime_to_timearray,
-    format_datetime,
-    format_timearray,
-    format_timearray_cursor,
-    get_max_value_for_timearray_digit,
-    is_timearray_valid,
-    timearray_to_datetime,
-)
-from pdc.hardware.display import WriteCommand, init_display, write
-from pdc.hardware.keys import init_keys
-from pdc.hardware.motor import Motor, MotorDirection, init_motor
-from pdc.hardware.rtc import init_clock, set_clock
+from pdc import config, date, state
+from pdc.hardware import display, init_hardware, motor, rtc
+from pdc.hardware.display import WriteCommand, write
+from pdc.hardware.motor import Motor, MotorDirection
 from pdc.locale import get_locale_function
 from pdc.menu import MenuManager, Scene
 
 try:
-    from typing import List, NoReturn, Optional
+    from typing import List, NoReturn
 except ImportError:
     List = ...
     NoReturn = ...
-    Optional = ...
 
 _ = get_locale_function(config.LOCALE)
 
@@ -50,9 +39,9 @@ class IdleScene(Scene):
             return
 
         if event.key_number == 0:
-            self.manager.display.toggle()
+            display.toggle()
         elif event.key_number == 3:
-            if self.manager.display.is_awake:
+            if state.is_display_awake():
                 self.next_scene()
 
     async def update_clock(self) -> NoReturn:
@@ -64,9 +53,9 @@ class IdleScene(Scene):
     @property
     def display_commands(self) -> List[WriteCommand]:
         return [
-            write(0, 0, format_datetime(datetime.now())),
+            write(0, 0, date.format_datetime(datetime.now())),
             write(0, 7, "->"),
-            write(0, 11, format_datetime(state.get_opening_time())),
+            write(0, 11, date.format_datetime(state.get_opening_time())),
             write(3, 0, _("Opening..."), cond=self.is_opening),
             write(3, 0, _("Disp.Off"), cond=not self.is_opening),
             write(3, 12, _("Menu"), cond=not self.is_opening),
@@ -78,14 +67,7 @@ class ManualControlScene(Scene):
         super().__init__(manager)
 
         self.control_task = None
-        self.motor = None
         self.percentage = state.get_opening_duty_cycle()
-
-    def on_exit(self) -> None:
-        if self.motor:
-            self.motor.deinit()
-
-        super().on_exit()
 
     def on_press(self, event: Event) -> None:
         if self.control_task:
@@ -116,16 +98,13 @@ class ManualControlScene(Scene):
     async def manual_control(self, direction: MotorDirection) -> None:
         self.update_display()
 
-        if not self.motor:
-            self.motor = init_motor()
-
         if direction == Motor.CLOSE:
-            self.motor.close(self.percentage)
+            motor.device.close(self.percentage)
         elif direction == Motor.OPEN:
-            self.motor.open(self.percentage)
+            motor.device.open(self.percentage)
 
         await asyncio.sleep(1.0)
-        self.motor.stop()
+        motor.device.stop()
 
         self.control_task = None
         self.update_display()
@@ -156,7 +135,7 @@ class AbstractTimeScene(Scene):
         elif event.key_number == 2:
             self._change_position()
         elif event.key_number == 3:
-            if is_timearray_valid(self.time):
+            if date.is_timearray_valid(self.time):
                 super().on_press(event)
 
     def _reset_value(self) -> None:
@@ -167,7 +146,7 @@ class AbstractTimeScene(Scene):
         # todo: move to pdc.date
         digit = self.time[self.cursor_position]
         digit += 1
-        if digit > get_max_value_for_timearray_digit(self.cursor_position):
+        if digit > date.get_max_value_for_timearray_digit(self.cursor_position):
             digit = 0
         self.time[self.cursor_position] = digit
         self.update_display()
@@ -186,12 +165,12 @@ class AutoOpenTimeScene(AbstractTimeScene):
     def __init__(self, manager: MenuManager) -> None:
         super().__init__(manager)
 
-        self.time = datetime_to_timearray(state.get_opening_time())
+        self.time = date.datetime_to_timearray(state.get_opening_time())
         self.default_time = list(self.time)
 
     def on_exit(self) -> None:
         if self.time != self.default_time:
-            state.set_opening_time(timearray_to_datetime(self.time))
+            state.set_opening_time(date.timearray_to_datetime(self.time))
             state.set_opening_cooldown(False)
             print("setting up new opening time")
         else:
@@ -203,10 +182,10 @@ class AutoOpenTimeScene(AbstractTimeScene):
     def display_commands(self) -> List[WriteCommand]:
         return [
             write(0, 0, _("Opening timer")),
-            write(1, 0, format_timearray(self.time)),
-            write(2, 0, format_timearray_cursor(self.cursor_position)),
+            write(1, 0, date.format_timearray(self.time)),
+            write(2, 0, date.format_timearray_cursor(self.cursor_position)),
             write(3, 0, f"{_('Reset')}  ↑ →"),
-            write(3, 14, _("OK"), cond=is_timearray_valid(self.time)),
+            write(3, 14, _("OK"), cond=date.is_timearray_valid(self.time)),
         ]
 
 
@@ -314,12 +293,12 @@ class CurrentTimeScene(AbstractTimeScene):
     def __init__(self, manager: MenuManager) -> None:
         super().__init__(manager)
 
-        self.time = datetime_to_timearray(datetime.now())
+        self.time = date.datetime_to_timearray(datetime.now())
         self.default_time = list(self.time)
 
     def on_exit(self) -> None:
         if self.time != self.default_time:
-            set_clock(timearray_to_datetime(self.time).timetuple())
+            rtc.device.datetime = date.timearray_to_datetime(self.time).timetuple()
             state.set_opening_cooldown(False)
             print("setting up new current time")
         else:
@@ -331,10 +310,10 @@ class CurrentTimeScene(AbstractTimeScene):
     def display_commands(self) -> List[WriteCommand]:
         return [
             write(0, 0, _("Current time")),
-            write(1, 0, format_timearray(self.time)),
-            write(2, 0, format_timearray_cursor(self.cursor_position)),
+            write(1, 0, date.format_timearray(self.time)),
+            write(2, 0, date.format_timearray_cursor(self.cursor_position)),
             write(3, 0, f"{_('Reset')}  ↑ →"),
-            write(3, 14, _("OK"), cond=is_timearray_valid(self.time)),
+            write(3, 14, _("OK"), cond=date.is_timearray_valid(self.time)),
         ]
 
 
@@ -358,11 +337,9 @@ async def control(manager: MenuManager) -> NoReturn:
                 manager.current_scene.update_display()
 
                 print("opening the door automatically...", datetime.now())
-                motor = init_motor()
-                motor.open(state.get_opening_duty_cycle())
+                motor.device.open(state.get_opening_duty_cycle())
                 await asyncio.sleep(state.get_opening_duration() / 1000.0)
-                motor.stop()
-                motor.deinit()
+                motor.device.stop()
                 print("door opened", datetime.now())
 
                 manager.current_scene.is_opening = False
@@ -378,23 +355,17 @@ async def control(manager: MenuManager) -> NoReturn:
 
 
 async def main() -> NoReturn:
-    display = init_display()
-    keys = init_keys()
-    init_clock()
-
-    state.load_from_eeprom()
+    init_hardware()
 
     menu = MenuManager(
-        scenes=[
+        [
             IdleScene,
             ManualControlScene,
             AutoOpenTimeScene,
             AutoOpenDurationScene,
             AutoOpenSpeedScene,
             CurrentTimeScene,
-        ],
-        display=display,
-        keys=keys,
+        ]
     )
 
     menu_task = asyncio.create_task(menu.task())

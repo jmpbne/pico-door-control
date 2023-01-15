@@ -1,32 +1,19 @@
-from keypad import Event, Keys
+from keypad import Event
 
 import asyncio
 
-from pdc.hardware.display import Display, write
+from pdc.hardware import display, keys
 
 try:
     from typing import List, NoReturn, Type
-
-    from pdc.hardware.display import WriteCommand
 except ImportError:
     List = ...
     NoReturn = ...
     Type = ...
-    WriteCommand = ...
 
 
 class MenuManager:
-    """
-    This class is responsible for controlling the input and output
-    (OLED display module and buttons).
-    """
-
-    def __init__(
-        self, *, scenes: List[Type["Scene"]], display: Display, keys: Keys
-    ) -> None:
-        self.display = display
-        self.keys = keys
-
+    def __init__(self, scenes: List[Type["Scene"]]) -> None:
         self.scenes = list(scenes)
         self.current_scene_id = None
         self.current_scene = None
@@ -48,8 +35,10 @@ class MenuManager:
         self.switch_to_scene(self.current_scene_id + 1)
 
     async def task(self) -> NoReturn:
+        keys_device = keys.device
+
         while True:
-            key_event = self.keys.events.get()
+            key_event = keys_device.events.get()
             if key_event and key_event.released:
                 self.current_scene.on_press(key_event)
 
@@ -74,8 +63,8 @@ class Scene:
         self.manager.switch_to_next_scene()
 
     def update_display(self) -> None:
-        self.manager.display.update(self.display_commands)
+        display.update(self.display_commands)
 
     @property
-    def display_commands(self) -> List[WriteCommand]:
-        return [write(0, 0, self.__class__.__name__)]
+    def display_commands(self) -> List[display.WriteCommand]:
+        return [display.write(0, 0, self.__class__.__name__)]

@@ -1,8 +1,8 @@
 from digitalio import DigitalInOut, Direction
+from microcontroller import Pin
 from pwmio import PWMOut
 
 from pdc import config
-
 
 MotorDirection = int
 
@@ -11,13 +11,13 @@ class Motor:
     CLOSE = 0
     OPEN = 1
 
-    def __init__(self) -> None:
-        self.speed = PWMOut(config.MOTOR_SPEED)
+    def __init__(self, phase1: Pin, phase2: Pin, pwm: Pin) -> None:
+        self.speed = PWMOut(pwm)
 
-        self.phase1 = DigitalInOut(config.MOTOR_PHASE1)
+        self.phase1 = DigitalInOut(phase1)
         self.phase1.direction = Direction.OUTPUT
 
-        self.phase2 = DigitalInOut(config.MOTOR_PHASE2)
+        self.phase2 = DigitalInOut(phase2)
         self.phase2.direction = Direction.OUTPUT
 
         self.stop()
@@ -53,5 +53,10 @@ def get_duty_cycle(percentage: int) -> int:
     return 65535 * percentage // 100
 
 
-def init_motor() -> Motor:
-    return Motor()
+device = None
+
+
+def init_motor() -> None:
+    global device
+
+    device = Motor(config.MOTOR_PHASE1, config.MOTOR_PHASE2, config.MOTOR_SPEED)

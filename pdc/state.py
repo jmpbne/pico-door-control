@@ -41,6 +41,11 @@ def dump_value(value: Any) -> Any:
         return value
 
 
+def erase_eeprom() -> None:
+    _state.clear()
+    dump_to_eeprom()
+
+
 def load_from_eeprom() -> None:
     raw = eeprom.load()
 
