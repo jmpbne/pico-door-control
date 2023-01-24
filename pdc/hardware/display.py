@@ -1,4 +1,5 @@
 import displayio
+import terminalio
 from displayio import Group, I2CDisplay
 
 from adafruit_bitmap_font import bitmap_font
@@ -19,7 +20,7 @@ except ImportError:
     WriteCommand = ...
 
 device = None
-font = bitmap_font.load_font(config.FONT_FILENAME)
+font = terminalio.FONT
 
 
 def init_display() -> None:
