@@ -1,9 +1,9 @@
 import board
 
-BUTTON_A = board.GP10
-BUTTON_B = board.GP11
-BUTTON_C = board.GP12
-BUTTON_D = board.GP13
+BUTTON_A = board.GP21
+BUTTON_B = board.GP20
+BUTTON_C = board.GP19
+BUTTON_D = board.GP18
 BUTTONS = [BUTTON_A, BUTTON_B, BUTTON_C, BUTTON_D]
 BUTTONS_VALUE_WHEN_PRESSED = False  # True = VCC, False = GND
 
@@ -17,8 +17,8 @@ FONT_WIDTH = 6
 I2C_ADDRESS_DISPLAY = 0x3C
 I2C_ADDRESS_EEPROM = 0x57
 I2C_ADDRESS_RTC = 0x68
-I2C_SCL = board.GP15
-I2C_SDA = board.GP14
+I2C_SCL = board.GP17
+I2C_SDA = board.GP16
 
 LOCALE = "pl"
 

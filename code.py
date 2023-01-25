@@ -1,6 +1,7 @@
 import asyncio
 
 from pdc.hardware import display, i2c, keys
+from pdc2.scenes import SceneManager
 
 
 async def main():
@@ -8,10 +9,9 @@ async def main():
     display.init_display()
     keys.init_keys()
 
-    print("Done")
+    sm = SceneManager()
 
-    while True:
-        await asyncio.sleep(0)
+    await sm.poll()
 
 
 if __name__ == "__main__":
