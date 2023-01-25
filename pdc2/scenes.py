@@ -9,8 +9,9 @@ LINE_COUNT = 5
 class Scene:
     name = "Scene"
 
-    def __init__(self, manager):
-        self._manager = manager
+    def __init__(self, manager, parent=None):
+        self.manager = manager
+        self.parent = parent
 
     def handle_event(self, event):
         self.refresh_screen()
@@ -20,19 +21,24 @@ class Scene:
 
 
 class MenuScene(Scene):
-    def __init__(self, manager):
-        super().__init__(manager)
+    def __init__(self, manager, parent=None):
+        super().__init__(manager, parent)
 
         self.entries = []
         self.cursor_position = 0
 
     def handle_event(self, event):
+        if event.key_number == 0 and self.parent:
+            self.manager.current_scene = self.parent
         if event.key_number == 1 and self.cursor_position > 0:
             self.cursor_position -= 1
+            self.refresh_screen()
         if event.key_number == 2 and self.cursor_position < len(self.entries) - 1:
             self.cursor_position += 1
-
-        self.refresh_screen()
+            self.refresh_screen()
+        if event.key_number == 3:
+            scene = self.entries[self.cursor_position](self.manager, parent=self)
+            self.manager.current_scene = scene
 
     def refresh_screen(self):
         data = [display.write(LINE_CURSOR, 0, "*")]
@@ -46,9 +52,25 @@ class MenuScene(Scene):
 
 
 class MainMenuScene(MenuScene):
-    def __init__(self, manager):
-        super().__init__(manager)
-        self.entries = [MockedScene1, MockedScene2, MockedScene3]
+    def __init__(self, manager, parent=None):
+        super().__init__(manager, parent)
+        self.entries = [MotorAMenuScene, MotorBMenuScene, MockedScene3]
+
+
+class MotorAMenuScene(MenuScene):
+    name = "Motor A"
+
+    def __init__(self, manager, parent=None):
+        super().__init__(manager, parent)
+        self.entries = [MockedScene1]
+
+
+class MotorBMenuScene(MenuScene):
+    name = "Motor B"
+
+    def __init__(self, manager, parent=None):
+        super().__init__(manager, parent)
+        self.entries = [MockedScene2]
 
 
 class MockedScene1(Scene):
