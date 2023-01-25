@@ -7,8 +7,6 @@ LINE_COUNT = 5
 
 
 class Scene:
-    name = "Scene"
-
     def __init__(self, manager, parent=None):
         self.manager = manager
         self.parent = parent
@@ -46,7 +44,13 @@ class MenuScene(Scene):
         for idx in range(LINE_COUNT):
             position = self.cursor_position - 1 + idx
             if 0 <= position < len(self.entries):
-                data.append(display.write(idx, 1, self.entries[position].name))
+                screen_class = self.entries[position]
+                try:
+                    name = screen_class.name
+                except AttributeError:
+                    name = screen_class.__name__
+
+                data.append(display.write(idx, 1, name))
 
         display.update(data)
 
@@ -54,7 +58,7 @@ class MenuScene(Scene):
 class MainMenuScene(MenuScene):
     def __init__(self, manager, parent=None):
         super().__init__(manager, parent)
-        self.entries = [MotorAMenuScene, MotorBMenuScene, MockedScene3]
+        self.entries = [MotorAMenuScene, Scene, Scene]
 
 
 class MotorAMenuScene(MenuScene):
@@ -62,27 +66,36 @@ class MotorAMenuScene(MenuScene):
 
     def __init__(self, manager, parent=None):
         super().__init__(manager, parent)
-        self.entries = [MockedScene1]
+        self.entries = [MotorAOpenMenuScene, Scene]
 
 
-class MotorBMenuScene(MenuScene):
-    name = "Motor B"
+class MotorAOpenMenuScene(MenuScene):
+    name = "Opening settings"
 
     def __init__(self, manager, parent=None):
         super().__init__(manager, parent)
-        self.entries = [MockedScene2]
+        self.entries = [
+            MotorAOpenNowScene,
+            MotorAOpenTimeScene,
+            MotorAOpenSpeedScene,
+            MotorAOpenDurationScene,
+        ]
 
 
-class MockedScene1(Scene):
-    name = "Mocked Scene 1"
+class MotorAOpenNowScene(Scene):
+    name = "Open now"
 
 
-class MockedScene2(Scene):
-    name = "Mocked Scene 2"
+class MotorAOpenTimeScene(Scene):
+    name = "Time"
 
 
-class MockedScene3(Scene):
-    name = "Mocked Scene 3"
+class MotorAOpenSpeedScene(Scene):
+    name = "Speed"
+
+
+class MotorAOpenDurationScene(Scene):
+    name = "Duration"
 
 
 class SceneManager:
