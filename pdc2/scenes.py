@@ -7,6 +7,7 @@ DISPLAY_BUTTON_B_COL = 5
 DISPLAY_BUTTON_C_COL = 10
 DISPLAY_BUTTON_D_COL = 15
 DISPLAY_CURSOR_ROW = 1
+DISPLAY_VALUE_ROW = 2
 DISPLAY_LAST_ROW = 4
 DISPLAY_TOTAL_ROWS = 5
 
@@ -16,6 +17,9 @@ BUTTON_C = 2
 BUTTON_D = 3
 BUTTON_ESC = 4
 BUTTON_OK = 5
+
+
+# Base scenes
 
 
 class Scene:
@@ -38,9 +42,6 @@ class MenuScene(Scene):
         self.cursor_position = 0
 
     def handle_event(self, event):
-        if event.key_number == BUTTON_ESC:
-            if self.parent:
-                self.manager.current_scene = self.parent
         if event.key_number == BUTTON_B:
             if self.cursor_position > 0:
                 self.cursor_position -= 1
@@ -49,6 +50,9 @@ class MenuScene(Scene):
             if self.cursor_position < len(self.entries) - 1:
                 self.cursor_position += 1
                 self.refresh_screen()
+        if event.key_number == BUTTON_ESC:
+            if self.parent:
+                self.manager.current_scene = self.parent
         if event.key_number == BUTTON_OK:
             scene = self.entries[self.cursor_position](self.manager, parent=self)
             self.manager.current_scene = scene
@@ -67,12 +71,66 @@ class MenuScene(Scene):
 
                 data.append(display.write(idx, 1, name))
 
-        data.append(display.write(DISPLAY_LAST_ROW, DISPLAY_BUTTON_A_COL, "      "))
+        data.append(display.write(DISPLAY_LAST_ROW, DISPLAY_BUTTON_A_COL, "<Back "))
         data.append(display.write(DISPLAY_LAST_ROW, DISPLAY_BUTTON_B_COL, " Up   "))
         data.append(display.write(DISPLAY_LAST_ROW, DISPLAY_BUTTON_C_COL, " Down "))
-        data.append(display.write(DISPLAY_LAST_ROW, DISPLAY_BUTTON_D_COL, "      "))
+        data.append(display.write(DISPLAY_LAST_ROW, DISPLAY_BUTTON_D_COL, "   OK>"))
 
         display.update(data)
+
+
+class NumberScene(Scene):
+    def __init__(self, manager, parent=None):
+        super().__init__(manager, parent)
+        self.current_digits = [0, 0, 0, 0]
+
+    def _get_digit_str(self, position):
+        digit = self.current_digits[position]
+
+        if digit is None:
+            return "-"
+        if digit == 0:
+            return "O"
+
+        return str(digit)
+
+    def _get_current_value(self):
+        return int("".join(str(d) for d in self.current_digits))
+
+    def _increment_digit(self, position):
+        _, digit = divmod(self.current_digits[position] + 1, 10)
+        self.current_digits[position] = digit
+
+    def handle_event(self, event):
+        if event.key_number == BUTTON_A:
+            self._increment_digit(0)
+            self.refresh_screen()
+        if event.key_number == BUTTON_B:
+            self._increment_digit(1)
+            self.refresh_screen()
+        if event.key_number == BUTTON_C:
+            self._increment_digit(2)
+            self.refresh_screen()
+        if event.key_number == BUTTON_D:
+            self._increment_digit(3)
+            self.refresh_screen()
+        if event.key_number == BUTTON_OK:
+            print(f"DEBUG current value: {self._get_current_value()}")
+            self.manager.current_scene = self.parent
+
+    def refresh_screen(self):
+        data = [
+            display.write(DISPLAY_VALUE_ROW, 4, self._get_digit_str(0)),
+            display.write(DISPLAY_VALUE_ROW, 8, self._get_digit_str(1)),
+            display.write(DISPLAY_VALUE_ROW, 12, self._get_digit_str(2)),
+            display.write(DISPLAY_VALUE_ROW, 16, self._get_digit_str(3)),
+            display.write(DISPLAY_LAST_ROW, DISPLAY_BUTTON_D_COL, "   OK>"),
+        ]
+
+        display.update(data)
+
+
+# Scene implementations
 
 
 class ScreenOffScene(Scene):
@@ -115,15 +173,15 @@ class MotorAOpenNowScene(Scene):
     name = "Open now"
 
 
-class MotorAOpenTimeScene(Scene):
+class MotorAOpenTimeScene(NumberScene):
     name = "Time"
 
 
-class MotorAOpenSpeedScene(Scene):
+class MotorAOpenSpeedScene(NumberScene):
     name = "Speed"
 
 
-class MotorAOpenDurationScene(Scene):
+class MotorAOpenDurationScene(NumberScene):
     name = "Duration"
 
 
