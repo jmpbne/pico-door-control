@@ -5,6 +5,11 @@ from pdc.hardware import display, keys
 LINE_CURSOR = 1
 LINE_COUNT = 5
 
+BUTTON_ESC = 0
+BUTTON_UP = 1
+BUTTON_DOWN = 2
+BUTTON_OK = 3
+
 
 class Scene:
     def __init__(self, manager, parent=None):
@@ -26,15 +31,18 @@ class MenuScene(Scene):
         self.cursor_position = 0
 
     def handle_event(self, event):
-        if event.key_number == 0 and self.parent:
-            self.manager.current_scene = self.parent
-        if event.key_number == 1 and self.cursor_position > 0:
-            self.cursor_position -= 1
-            self.refresh_screen()
-        if event.key_number == 2 and self.cursor_position < len(self.entries) - 1:
-            self.cursor_position += 1
-            self.refresh_screen()
-        if event.key_number == 3:
+        if event.key_number == BUTTON_ESC:
+            if self.parent:
+                self.manager.current_scene = self.parent
+        if event.key_number == BUTTON_DOWN:
+            if self.cursor_position > 0:
+                self.cursor_position -= 1
+                self.refresh_screen()
+        if event.key_number == BUTTON_UP:
+            if self.cursor_position < len(self.entries) - 1:
+                self.cursor_position += 1
+                self.refresh_screen()
+        if event.key_number == BUTTON_OK:
             scene = self.entries[self.cursor_position](self.manager, parent=self)
             self.manager.current_scene = scene
 
