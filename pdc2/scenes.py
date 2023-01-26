@@ -6,10 +6,10 @@ DISPLAY_BUTTON_A_COL = 0
 DISPLAY_BUTTON_B_COL = 5
 DISPLAY_BUTTON_C_COL = 10
 DISPLAY_BUTTON_D_COL = 15
-DISPLAY_CURSOR_ROW = 1
-DISPLAY_VALUE_ROW = 2
 DISPLAY_LAST_ROW = 4
-DISPLAY_TOTAL_ROWS = 5
+DISPLAY_MENU_CURSOR_ROW = 1
+DISPLAY_MENU_ROWS = 4
+DISPLAY_VALUE_ROW = 2
 
 BUTTON_A = 0
 BUTTON_B = 1
@@ -31,7 +31,11 @@ class Scene:
         self.refresh_screen()
 
     def refresh_screen(self):
-        display.update([display.write(0, 0, self.__class__.__name__)])
+        display.update(self.display_data)
+
+    @property
+    def display_data(self):
+        return [display.write(0, 0, self.__class__.__name__)]
 
 
 class MenuScene(Scene):
@@ -55,10 +59,17 @@ class MenuScene(Scene):
         if event.key_number == BUTTON_OK:
             self.manager.switch_to_new_scene(self.entries[self.cursor_position])
 
-    def refresh_screen(self):
-        data = [display.write(DISPLAY_CURSOR_ROW, 0, "*")]
+    @property
+    def display_data(self):
+        data = [
+            display.write(DISPLAY_MENU_CURSOR_ROW, 0, "*"),
+            display.write(DISPLAY_LAST_ROW, DISPLAY_BUTTON_A_COL, "<Back "),
+            display.write(DISPLAY_LAST_ROW, DISPLAY_BUTTON_B_COL, "  Up  "),
+            display.write(DISPLAY_LAST_ROW, DISPLAY_BUTTON_C_COL, " Down "),
+            display.write(DISPLAY_LAST_ROW, DISPLAY_BUTTON_D_COL, "   OK>"),
+        ]
 
-        for idx in range(DISPLAY_TOTAL_ROWS):
+        for idx in range(DISPLAY_MENU_ROWS):
             position = self.cursor_position - 1 + idx
             if 0 <= position < len(self.entries):
                 screen_class = self.entries[position]
@@ -69,12 +80,7 @@ class MenuScene(Scene):
 
                 data.append(display.write(idx, 1, name))
 
-        data.append(display.write(DISPLAY_LAST_ROW, DISPLAY_BUTTON_A_COL, "<Back "))
-        data.append(display.write(DISPLAY_LAST_ROW, DISPLAY_BUTTON_B_COL, " Up   "))
-        data.append(display.write(DISPLAY_LAST_ROW, DISPLAY_BUTTON_C_COL, " Down "))
-        data.append(display.write(DISPLAY_LAST_ROW, DISPLAY_BUTTON_D_COL, "   OK>"))
-
-        display.update(data)
+        return data
 
 
 class NumberScene(Scene):
@@ -116,16 +122,15 @@ class NumberScene(Scene):
             print(f"DEBUG current value: {self._get_current_value()}")
             self.manager.switch_to_parent_scene()
 
-    def refresh_screen(self):
-        data = [
+    @property
+    def display_data(self):
+        return [
             display.write(DISPLAY_VALUE_ROW, 4, self._get_digit_str(0)),
             display.write(DISPLAY_VALUE_ROW, 8, self._get_digit_str(1)),
             display.write(DISPLAY_VALUE_ROW, 12, self._get_digit_str(2)),
             display.write(DISPLAY_VALUE_ROW, 16, self._get_digit_str(3)),
             display.write(DISPLAY_LAST_ROW, DISPLAY_BUTTON_D_COL, "   OK>"),
         ]
-
-        display.update(data)
 
 
 # Scene implementations
@@ -136,8 +141,9 @@ class ScreenOffScene(Scene):
         if event.key_number == BUTTON_ESC:
             self.manager.switch_to_new_scene(MainMenuScene)
 
-    def refresh_screen(self):
-        display.update([])
+    @property
+    def display_data(self):
+        return []
 
 
 class MainMenuScene(MenuScene):
