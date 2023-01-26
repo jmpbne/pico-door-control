@@ -34,11 +34,11 @@ class MenuScene(Scene):
         if event.key_number == BUTTON_ESC:
             if self.parent:
                 self.manager.current_scene = self.parent
-        if event.key_number == BUTTON_DOWN:
+        if event.key_number == BUTTON_UP:
             if self.cursor_position > 0:
                 self.cursor_position -= 1
                 self.refresh_screen()
-        if event.key_number == BUTTON_UP:
+        if event.key_number == BUTTON_DOWN:
             if self.cursor_position < len(self.entries) - 1:
                 self.cursor_position += 1
                 self.refresh_screen()
@@ -61,6 +61,15 @@ class MenuScene(Scene):
                 data.append(display.write(idx, 1, name))
 
         display.update(data)
+
+
+class ScreenOffScene(Scene):
+    def handle_event(self, event):
+        if event.key_number == BUTTON_ESC:
+            self.manager.current_scene = MainMenuScene(self.manager, parent=self)
+
+    def refresh_screen(self):
+        display.update([])
 
 
 class MainMenuScene(MenuScene):
@@ -109,7 +118,7 @@ class MotorAOpenDurationScene(Scene):
 class SceneManager:
     def __init__(self):
         self._current_scene = None
-        self.current_scene = MainMenuScene(self)
+        self.current_scene = ScreenOffScene(self)
 
     @property
     def current_scene(self):
