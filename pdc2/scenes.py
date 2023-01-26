@@ -1,5 +1,7 @@
 import asyncio
 
+from adafruit_datetime import time
+
 from pdc.hardware import display, keys
 
 DISPLAY_BUTTON_A_COL = 0
@@ -9,7 +11,7 @@ DISPLAY_BUTTON_D_COL = 15
 DISPLAY_LAST_ROW = 4
 DISPLAY_MENU_CURSOR_ROW = 1
 DISPLAY_MENU_ROWS = 4
-DISPLAY_VALUE_ROW = 2
+DISPLAY_VALUE_ROW = 1
 
 BUTTON_A = 0
 BUTTON_B = 1
@@ -133,6 +135,47 @@ class NumberScene(Scene):
         ]
 
 
+class TimeScene(NumberScene):
+    def _get_current_value(self):
+        hh_str = self.current_digits[0] * 10 + self.current_digits[1]
+        mm_str = self.current_digits[2] * 10 + self.current_digits[3]
+
+        return time(hh_str, mm_str)
+
+    @property
+    def display_data(self):
+        data = super().display_data
+        data.append(display.write(DISPLAY_VALUE_ROW, 10, ":"))
+
+        return data
+
+
+class PercentageScene(NumberScene):
+    def _get_current_value(self):
+        return super()._get_current_value() / 1000.0
+
+    @property
+    def display_data(self):
+        data = super().display_data
+        data.append(display.write(DISPLAY_VALUE_ROW, 14, "."))
+        data.append(display.write(DISPLAY_VALUE_ROW, 18, "%"))
+
+        return data
+
+
+class DurationScene(NumberScene):
+    def _get_current_value(self):
+        return super()._get_current_value() / 10.0
+
+    @property
+    def display_data(self):
+        data = super().display_data
+        data.append(display.write(DISPLAY_VALUE_ROW, 14, "."))
+        data.append(display.write(DISPLAY_VALUE_ROW, 18, "s"))
+
+        return data
+
+
 # Scene implementations
 
 
@@ -177,15 +220,15 @@ class MotorAOpenNowScene(Scene):
     name = "Open now"
 
 
-class MotorAOpenTimeScene(NumberScene):
+class MotorAOpenTimeScene(TimeScene):
     name = "Time"
 
 
-class MotorAOpenSpeedScene(NumberScene):
+class MotorAOpenSpeedScene(PercentageScene):
     name = "Speed"
 
 
-class MotorAOpenDurationScene(NumberScene):
+class MotorAOpenDurationScene(DurationScene):
     name = "Duration"
 
 
