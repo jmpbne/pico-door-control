@@ -2,13 +2,20 @@ import asyncio
 
 from pdc.hardware import display, keys
 
-LINE_CURSOR = 1
-LINE_COUNT = 5
+DISPLAY_BUTTON_A_COL = 0
+DISPLAY_BUTTON_B_COL = 5
+DISPLAY_BUTTON_C_COL = 10
+DISPLAY_BUTTON_D_COL = 15
+DISPLAY_CURSOR_ROW = 1
+DISPLAY_LAST_ROW = 4
+DISPLAY_TOTAL_ROWS = 5
 
-BUTTON_ESC = 0
-BUTTON_UP = 1
-BUTTON_DOWN = 2
-BUTTON_OK = 3
+BUTTON_A = 0
+BUTTON_B = 1
+BUTTON_C = 2
+BUTTON_D = 3
+BUTTON_ESC = 4
+BUTTON_OK = 5
 
 
 class Scene:
@@ -34,11 +41,11 @@ class MenuScene(Scene):
         if event.key_number == BUTTON_ESC:
             if self.parent:
                 self.manager.current_scene = self.parent
-        if event.key_number == BUTTON_UP:
+        if event.key_number == BUTTON_B:
             if self.cursor_position > 0:
                 self.cursor_position -= 1
                 self.refresh_screen()
-        if event.key_number == BUTTON_DOWN:
+        if event.key_number == BUTTON_C:
             if self.cursor_position < len(self.entries) - 1:
                 self.cursor_position += 1
                 self.refresh_screen()
@@ -47,9 +54,9 @@ class MenuScene(Scene):
             self.manager.current_scene = scene
 
     def refresh_screen(self):
-        data = [display.write(LINE_CURSOR, 0, "*")]
+        data = [display.write(DISPLAY_CURSOR_ROW, 0, "*")]
 
-        for idx in range(LINE_COUNT):
+        for idx in range(DISPLAY_TOTAL_ROWS):
             position = self.cursor_position - 1 + idx
             if 0 <= position < len(self.entries):
                 screen_class = self.entries[position]
@@ -59,6 +66,11 @@ class MenuScene(Scene):
                     name = screen_class.__name__
 
                 data.append(display.write(idx, 1, name))
+
+        data.append(display.write(DISPLAY_LAST_ROW, DISPLAY_BUTTON_A_COL, "      "))
+        data.append(display.write(DISPLAY_LAST_ROW, DISPLAY_BUTTON_B_COL, " Up   "))
+        data.append(display.write(DISPLAY_LAST_ROW, DISPLAY_BUTTON_C_COL, " Down "))
+        data.append(display.write(DISPLAY_LAST_ROW, DISPLAY_BUTTON_D_COL, "      "))
 
         display.update(data)
 
