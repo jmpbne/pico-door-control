@@ -51,11 +51,9 @@ class MenuScene(Scene):
                 self.cursor_position += 1
                 self.refresh_screen()
         if event.key_number == BUTTON_ESC:
-            if self.parent:
-                self.manager.current_scene = self.parent
+            self.manager.switch_to_parent_scene()
         if event.key_number == BUTTON_OK:
-            scene = self.entries[self.cursor_position](self.manager, parent=self)
-            self.manager.current_scene = scene
+            self.manager.switch_to_new_scene(self.entries[self.cursor_position])
 
     def refresh_screen(self):
         data = [display.write(DISPLAY_CURSOR_ROW, 0, "*")]
@@ -116,7 +114,7 @@ class NumberScene(Scene):
             self.refresh_screen()
         if event.key_number == BUTTON_OK:
             print(f"DEBUG current value: {self._get_current_value()}")
-            self.manager.current_scene = self.parent
+            self.manager.switch_to_parent_scene()
 
     def refresh_screen(self):
         data = [
@@ -136,7 +134,7 @@ class NumberScene(Scene):
 class ScreenOffScene(Scene):
     def handle_event(self, event):
         if event.key_number == BUTTON_ESC:
-            self.manager.current_scene = MainMenuScene(self.manager, parent=self)
+            self.manager.switch_to_new_scene(MainMenuScene)
 
     def refresh_screen(self):
         display.update([])
@@ -187,17 +185,18 @@ class MotorAOpenDurationScene(NumberScene):
 
 class SceneManager:
     def __init__(self):
-        self._current_scene = None
-        self.current_scene = ScreenOffScene(self)
+        self.current_scene = None
+        self.switch_to_new_scene(ScreenOffScene)
 
-    @property
-    def current_scene(self):
-        return self._current_scene
+    def switch_to_scene(self, scene):
+        self.current_scene = scene
+        self.current_scene.refresh_screen()
 
-    @current_scene.setter
-    def current_scene(self, scene):
-        self._current_scene = scene
-        self._current_scene.refresh_screen()
+    def switch_to_new_scene(self, scene_class):
+        self.switch_to_scene(scene_class(self, parent=self.current_scene))
+
+    def switch_to_parent_scene(self):
+        self.switch_to_scene(self.current_scene.parent)
 
     async def poll(self):
         keys_device = keys.device
