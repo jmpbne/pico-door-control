@@ -1,4 +1,5 @@
 import asyncio
+import math
 
 from adafruit_datetime import time
 
@@ -100,7 +101,7 @@ class NumberScene(Scene):
 
         return str(digit)
 
-    def _get_current_value(self):
+    def _get_output_value(self):
         return int("".join(str(d) for d in self.current_digits))
 
     def _increment_digit(self, position):
@@ -112,6 +113,10 @@ class NumberScene(Scene):
             digit += 1
 
         self.current_digits[position] = digit
+
+    def _set_input_value(self, value):
+        for idx in range(4):
+            value, self.current_digits[3 - idx] = divmod(value, 10)
 
     def handle_event(self, event):
         if event.key_number == BUTTON_A:
@@ -134,7 +139,7 @@ class NumberScene(Scene):
 
     def handle_save(self):
         try:
-            value = self._get_current_value()
+            value = self._get_output_value()
         except Exception as e:
             print(f"Handled exception: {e.__class__.__name__}: {e}")
             return False
@@ -155,14 +160,14 @@ class NumberScene(Scene):
 
 
 class TimeScene(NumberScene):
-    def _get_current_value(self):
+    def _get_output_value(self):
         if all(d is None for d in self.current_digits):
             return None
 
-        hh_str = self.current_digits[0] * 10 + self.current_digits[1]
-        mm_str = self.current_digits[2] * 10 + self.current_digits[3]
+        hh = self.current_digits[0] * 10 + self.current_digits[1]
+        mm = self.current_digits[2] * 10 + self.current_digits[3]
 
-        return time(hh_str, mm_str)
+        return time(hh, mm)
 
     def _increment_digit(self, position):
         digit = self.current_digits[position]
@@ -178,6 +183,15 @@ class TimeScene(NumberScene):
 
         self.current_digits[position] = digit
 
+    def _set_input_value(self, value):
+        if value is None:
+            self.current_digits = [None, None, None, None]
+
+        h1, h2 = divmod(value.hour, 10)
+        m1, m2 = divmod(value.minute, 10)
+
+        self.current_digits = [h1, h2, m1, m2]
+
     @property
     def display_data(self):
         data = super().display_data
@@ -187,8 +201,8 @@ class TimeScene(NumberScene):
 
 
 class PercentageScene(NumberScene):
-    def _get_current_value(self):
-        value = super()._get_current_value()
+    def _get_output_value(self):
+        value = super()._get_output_value()
         if not (0 <= value <= 1000):
             raise ValueError("Percentage value out of range")
 
@@ -206,6 +220,9 @@ class PercentageScene(NumberScene):
 
         self.current_digits[position] = digit
 
+    def _set_input_value(self, value):
+        super()._set_input_value(math.ceil(value * 1000))
+
     @property
     def display_data(self):
         data = super().display_data
@@ -216,8 +233,11 @@ class PercentageScene(NumberScene):
 
 
 class DurationScene(NumberScene):
-    def _get_current_value(self):
-        return super()._get_current_value() / 10.0
+    def _get_output_value(self):
+        return super()._get_output_value() / 10.0
+
+    def _set_input_value(self, value):
+        super()._set_input_value(math.ceil(value * 10))
 
     @property
     def display_data(self):
