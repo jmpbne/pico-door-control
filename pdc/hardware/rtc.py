@@ -17,8 +17,4 @@ def init_rtc() -> None:
     device = DS3231(i2c.device)
     device.i2c_device = I2CDevice(i2c.device, config.I2C_ADDRESS_RTC)
 
-    if device.lost_power:
-        state.erase_eeprom()
-        device.datetime = datetime(2000, 1, 1, 0, 0, 0).timetuple()
-
     rtc.set_time_source(device)
