@@ -169,7 +169,9 @@ class TimeScene(NumberScene):
 
         if digit is None:
             digit = 0
-        elif digit == 9:
+        elif position == 0 and digit == 2:
+            digit = None
+        elif position != 0 and digit == 9:
             digit = None
         else:
             digit += 1
@@ -191,6 +193,18 @@ class PercentageScene(NumberScene):
             raise ValueError("Percentage value out of range")
 
         return value / 1000.0
+
+    def _increment_digit(self, position):
+        digit = self.current_digits[position]
+
+        if position == 0 and digit == 1:
+            digit = 0
+        elif position != 0 and digit == 9:
+            digit = 0
+        else:
+            digit += 1
+
+        self.current_digits[position] = digit
 
     @property
     def display_data(self):
