@@ -120,9 +120,14 @@ class NumberScene(Scene):
         if event.key_number == BUTTON_D:
             self._increment_digit(3)
             self.refresh_screen()
-        if event.key_number == BUTTON_OK:
-            print(f"DEBUG current value: {self._get_current_value()}")
+        if event.key_number == BUTTON_ESC:
             self.manager.switch_to_parent_scene()
+        if event.key_number == BUTTON_OK:
+            self.handle_save()
+            self.manager.switch_to_parent_scene()
+
+    def handle_save(self):
+        print(f"DEBUG current value: {self._get_current_value()}")
 
     @property
     def display_data(self):
@@ -131,6 +136,7 @@ class NumberScene(Scene):
             display.write(DISPLAY_VALUE_ROW, 8, self._get_digit_str(1)),
             display.write(DISPLAY_VALUE_ROW, 12, self._get_digit_str(2)),
             display.write(DISPLAY_VALUE_ROW, 16, self._get_digit_str(3)),
+            display.write(DISPLAY_LAST_ROW, DISPLAY_BUTTON_A_COL, "<Cancel"),
             display.write(DISPLAY_LAST_ROW, DISPLAY_BUTTON_D_COL, "   OK>"),
         ]
 
