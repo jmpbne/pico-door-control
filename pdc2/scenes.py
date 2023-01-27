@@ -187,7 +187,7 @@ class TimeScene(NumberScene):
 class PercentageScene(NumberScene):
     def _get_current_value(self):
         value = super()._get_current_value()
-        if not (0 < value < 1000):
+        if not (0 <= value <= 1000):
             raise ValueError("Percentage value out of range")
 
         return value / 1000.0
