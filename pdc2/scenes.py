@@ -104,7 +104,13 @@ class NumberScene(Scene):
         return int("".join(str(d) for d in self.current_digits))
 
     def _increment_digit(self, position):
-        _, digit = divmod(self.current_digits[position] + 1, 10)
+        digit = self.current_digits[position]
+
+        if digit == 9:
+            digit = 0
+        else:
+            digit += 1
+
         self.current_digits[position] = digit
 
     def handle_event(self, event):
@@ -150,10 +156,25 @@ class NumberScene(Scene):
 
 class TimeScene(NumberScene):
     def _get_current_value(self):
+        if all(d is None for d in self.current_digits):
+            return None
+
         hh_str = self.current_digits[0] * 10 + self.current_digits[1]
         mm_str = self.current_digits[2] * 10 + self.current_digits[3]
 
         return time(hh_str, mm_str)
+
+    def _increment_digit(self, position):
+        digit = self.current_digits[position]
+
+        if digit is None:
+            digit = 0
+        elif digit == 9:
+            digit = None
+        else:
+            digit += 1
+
+        self.current_digits[position] = digit
 
     @property
     def display_data(self):
