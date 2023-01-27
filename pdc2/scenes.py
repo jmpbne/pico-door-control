@@ -123,11 +123,18 @@ class NumberScene(Scene):
         if event.key_number == BUTTON_ESC:
             self.manager.switch_to_parent_scene()
         if event.key_number == BUTTON_OK:
-            self.handle_save()
-            self.manager.switch_to_parent_scene()
+            if self.handle_save():
+                self.manager.switch_to_parent_scene()
 
     def handle_save(self):
-        print(f"DEBUG current value: {self._get_current_value()}")
+        try:
+            value = self._get_current_value()
+        except Exception as e:
+            print(f"Handled exception: {e.__class__.__name__}: {e}")
+            return False
+        else:
+            print(f"Current value: {value}")
+            return True
 
     @property
     def display_data(self):
@@ -158,7 +165,11 @@ class TimeScene(NumberScene):
 
 class PercentageScene(NumberScene):
     def _get_current_value(self):
-        return super()._get_current_value() / 1000.0
+        value = super()._get_current_value()
+        if not (0 < value < 1000):
+            raise ValueError("Percentage value out of range")
+
+        return value / 1000.0
 
     @property
     def display_data(self):
