@@ -1,7 +1,8 @@
 from adafruit_datetime import datetime
 
 from pdc.hardware import rtc
-from pdc2.scenes.base import BUTTON_ESC, INVALID_OUTPUT, Scene
+from pdc2.scenes.base import BUTTON_ESC, Scene
+from pdc2.scenes.exceptions import SceneValueError
 
 
 class ScreenOffScene(Scene):
@@ -70,8 +71,8 @@ class SystemTimeScene(Scene.Time):
 
     def handle_save(self):
         value = super().handle_save()
-        if value is INVALID_OUTPUT or None:
-            return INVALID_OUTPUT
+        if value is None:
+            raise SceneValueError
 
         dt = datetime(2000, 1, 1, value.hour, value.minute, 0)
         rtc.device.datetime = dt.timetuple()

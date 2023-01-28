@@ -1,0 +1,2 @@
+class SceneValueError(ValueError):
+    pass

@@ -4,6 +4,7 @@ import math
 from adafruit_datetime import time
 
 from pdc.hardware import display, keys
+from pdc2.scenes.exceptions import SceneValueError
 
 DISPLAY_BUTTON_A_COL = 0
 DISPLAY_BUTTON_B_COL = 5
@@ -20,8 +21,6 @@ BUTTON_C = 2
 BUTTON_D = 3
 BUTTON_ESC = 4
 BUTTON_OK = 5
-
-INVALID_OUTPUT = object()
 
 
 class Scene:
@@ -139,18 +138,15 @@ class NumberScene(Scene):
         if event.key_number == BUTTON_ESC:
             self.manager.switch_to_parent_scene()
         if event.key_number == BUTTON_OK:
-            if self.handle_save() is not INVALID_OUTPUT:
+            try:
+                self.handle_save()
+            except SceneValueError:
+                print("Ignoring invalid scene value")
+            else:
                 self.manager.switch_to_parent_scene()
 
     def handle_save(self):
-        try:
-            value = self._get_output_value()
-        except Exception as e:
-            print(f"Handled exception: {e.__class__.__name__}: {e}")
-            return INVALID_OUTPUT
-        else:
-            print(f"Current value: {value}")
-            return value
+        print(f"Current value: {self._get_output_value()}")
 
     @property
     def display_data(self):
@@ -169,10 +165,12 @@ class TimeScene(NumberScene):
         if all(d is None for d in self.current_digits):
             return None
 
-        hh = self.current_digits[0] * 10 + self.current_digits[1]
-        mm = self.current_digits[2] * 10 + self.current_digits[3]
-
-        return time(hh, mm)
+        try:
+            hh = self.current_digits[0] * 10 + self.current_digits[1]
+            mm = self.current_digits[2] * 10 + self.current_digits[3]
+            return time(hh, mm)
+        except (TypeError, ValueError):
+            raise SceneValueError
 
     def _increment_digit(self, position):
         digit = self.current_digits[position]
@@ -210,7 +208,7 @@ class PercentageScene(NumberScene):
     def _get_output_value(self):
         value = super()._get_output_value()
         if not (0 <= value <= 1000):
-            raise ValueError("Percentage value out of range")
+            raise SceneValueError
 
         return value / 1000.0
 
