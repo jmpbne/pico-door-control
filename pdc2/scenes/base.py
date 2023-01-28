@@ -39,6 +39,22 @@ class Scene:
         return [display.write(0, 0, self.__class__.__name__)]
 
 
+class MessageScene(Scene):
+    def __init__(self, manager, parent=None):
+        super().__init__(manager, parent)
+        self.message = "No message"
+
+    def handle_event(self, event):
+        self.manager.switch_to_parent_scene()
+
+    @property
+    def display_data(self):
+        return [
+            display.write(0, 0, self.message),
+            display.write(DISPLAY_LAST_ROW, DISPLAY_BUTTON_D_COL, "   OK>"),
+        ]
+
+
 class MenuScene(Scene):
     def __init__(self, manager, parent=None):
         super().__init__(manager, parent)
