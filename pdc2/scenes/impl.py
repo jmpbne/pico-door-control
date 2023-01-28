@@ -4,10 +4,10 @@ from pdc.hardware import rtc
 from pdc2 import state
 from pdc2.scenes.base import (
     BUTTON_ESC,
-    DurationScene,
     MenuScene,
+    MotorDurationScene,
+    MotorPercentageScene,
     MotorTimeScene,
-    PercentageScene,
     Scene,
     TimeScene,
 )
@@ -58,52 +58,22 @@ class MotorAOpenNowScene(Scene):
 class MotorAOpenTimeScene(MotorTimeScene):
     name = "Time"
 
-    def __init__(self, manager, parent=None):
-        super().__init__(manager, parent)
-        self._set_input_value(self._get_motor_data())
-
     def _get_motor_data(self):
         return state.get("ao")
 
-    def handle_save(self):
-        value = self._get_output_value()
 
-        self._get_motor_data().update(**value)
-        return value
-
-
-class MotorAOpenSpeedScene(PercentageScene):
+class MotorAOpenSpeedScene(MotorPercentageScene):
     name = "Speed"
 
-    def __init__(self, manager, parent=None):
-        super().__init__(manager, parent)
-        self._set_input_value(self._get_motor_data().get("p"))
-
     def _get_motor_data(self):
         return state.get("ao")
 
-    def handle_save(self):
-        value = self._get_output_value()
 
-        self._get_motor_data()["p"] = value
-        return value
-
-
-class MotorAOpenDurationScene(DurationScene):
+class MotorAOpenDurationScene(MotorDurationScene):
     name = "Duration"
 
-    def __init__(self, manager, parent=None):
-        super().__init__(manager, parent)
-        self._set_input_value(self._get_motor_data().get("d"))
-
     def _get_motor_data(self):
         return state.get("ao")
-
-    def handle_save(self):
-        value = self._get_output_value()
-
-        self._get_motor_data()["d"] = value
-        return value
 
 
 class SystemTimeScene(TimeScene):

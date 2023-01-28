@@ -202,6 +202,13 @@ class TimeScene(NumberScene):
 
 
 class MotorTimeScene(TimeScene):
+    def __init__(self, manager, parent=None):
+        super().__init__(manager, parent)
+        self._set_input_value(self._get_motor_data())
+
+    def _get_motor_data(self):
+        return {}
+
     def _get_output_value(self):
         value = super()._get_output_value()
         if value:
@@ -216,6 +223,12 @@ class MotorTimeScene(TimeScene):
             self.current_digits = [h1, h2, m1, m2]
         except TypeError:
             self.current_digits = [None, None, None, None]
+
+    def handle_save(self):
+        value = self._get_output_value()
+
+        self._get_motor_data().update(**value)
+        return value
 
 
 class PercentageScene(NumberScene):
@@ -250,6 +263,21 @@ class PercentageScene(NumberScene):
         return data
 
 
+class MotorPercentageScene(PercentageScene):
+    def __init__(self, manager, parent=None):
+        super().__init__(manager, parent)
+        self._set_input_value(self._get_motor_data().get("p"))
+
+    def _get_motor_data(self):
+        return {}
+
+    def handle_save(self):
+        value = self._get_output_value()
+
+        self._get_motor_data()["p"] = value
+        return value
+
+
 class DurationScene(NumberScene):
     def _get_output_value(self):
         return super()._get_output_value() / 10.0
@@ -264,6 +292,21 @@ class DurationScene(NumberScene):
         data.append(display.write(DISPLAY_VALUE_ROW, 18, "s"))
 
         return data
+
+
+class MotorDurationScene(DurationScene):
+    def __init__(self, manager, parent=None):
+        super().__init__(manager, parent)
+        self._set_input_value(self._get_motor_data().get("d"))
+
+    def _get_motor_data(self):
+        return {}
+
+    def handle_save(self):
+        value = self._get_output_value()
+
+        self._get_motor_data()["d"] = value
+        return value
 
 
 class SceneManager:
