@@ -5,6 +5,7 @@ from pdc2.scenes.base import (
     BUTTON_ESC,
     MenuScene,
     MotorDurationScene,
+    MotorNowScene,
     MotorPercentageScene,
     MotorTimeScene,
     Scene,
@@ -50,7 +51,7 @@ class MotorAOpenMenuScene(MenuScene):
         ]
 
 
-class MotorAOpenNowScene(Scene):
+class MotorAOpenNowScene(MotorNowScene):
     name = "Open now"
     motor_id = "ao"
 
@@ -83,7 +84,7 @@ class MotorACloseMenuScene(MenuScene):
         ]
 
 
-class MotorACloseNowScene(Scene):
+class MotorACloseNowScene(MotorNowScene):
     name = "Close now"
     motor_id = "ac"
 
@@ -124,7 +125,7 @@ class MotorBMenuScene(MenuScene):
         self.entries = [MotorBOpenMenuScene, MotorBCloseMenuScene]
 
 
-class MotorBOpenNowScene(Scene):
+class MotorBOpenNowScene(MotorNowScene):
     name = "Open now"
     motor_id = "bo"
 
@@ -157,7 +158,7 @@ class MotorBCloseMenuScene(MenuScene):
         ]
 
 
-class MotorBCloseNowScene(Scene):
+class MotorBCloseNowScene(MotorNowScene):
     name = "Close now"
     motor_id = "bc"
 

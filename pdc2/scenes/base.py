@@ -323,6 +323,16 @@ class MotorDurationScene(DurationScene):
         return value
 
 
+class MotorNowScene(MessageScene):
+    motor_id = None
+
+    def __init__(self, manager, parent=None):
+        super().__init__(manager, parent)
+
+        self.message = "Done"
+        state.append_oneshot_motor_data(self.motor_id)
+
+
 class SceneManager:
     def __init__(self, start_scene_class):
         self.current_scene = None
