@@ -1,9 +1,9 @@
 import asyncio
 import math
 
-from adafruit_datetime import time
+from adafruit_datetime import datetime, time
 
-from pdc.hardware import display, keys
+from pdc.hardware import display, keys, rtc
 
 DISPLAY_BUTTON_A_COL = 0
 DISPLAY_BUTTON_B_COL = 5
@@ -20,6 +20,8 @@ BUTTON_C = 2
 BUTTON_D = 3
 BUTTON_ESC = 4
 BUTTON_OK = 5
+
+INVALID_OUTPUT = object()
 
 
 # Base scenes
@@ -134,7 +136,7 @@ class NumberScene(Scene):
         if event.key_number == BUTTON_ESC:
             self.manager.switch_to_parent_scene()
         if event.key_number == BUTTON_OK:
-            if self.handle_save():
+            if self.handle_save() is not INVALID_OUTPUT:
                 self.manager.switch_to_parent_scene()
 
     def handle_save(self):
@@ -142,10 +144,10 @@ class NumberScene(Scene):
             value = self._get_output_value()
         except Exception as e:
             print(f"Handled exception: {e.__class__.__name__}: {e}")
-            return False
+            return INVALID_OUTPUT
         else:
             print(f"Current value: {value}")
-            return True
+            return value
 
     @property
     def display_data(self):
@@ -186,6 +188,7 @@ class TimeScene(NumberScene):
     def _set_input_value(self, value):
         if value is None:
             self.current_digits = [None, None, None, None]
+            return
 
         h1, h2 = divmod(value.hour, 10)
         m1, m2 = divmod(value.minute, 10)
@@ -264,7 +267,7 @@ class ScreenOffScene(Scene):
 class MainMenuScene(MenuScene):
     def __init__(self, manager, parent=None):
         super().__init__(manager, parent)
-        self.entries = [MotorAMenuScene, Scene, Scene]
+        self.entries = [MotorAMenuScene, Scene, SystemTimeScene]
 
 
 class MotorAMenuScene(MenuScene):
@@ -302,6 +305,28 @@ class MotorAOpenSpeedScene(PercentageScene):
 
 class MotorAOpenDurationScene(DurationScene):
     name = "Duration"
+
+
+class SystemTimeScene(TimeScene):
+    name = "System time"
+
+    def __init__(self, manager, parent=None):
+        super().__init__(manager, parent)
+
+        if rtc.device.lost_power:
+            self._set_input_value(None)
+        else:
+            self._set_input_value(datetime.now())
+
+    def handle_save(self):
+        value = super().handle_save()
+        if value is None:
+            return INVALID_OUTPUT
+
+        dt = datetime(2000, 1, 1, value.hour, value.minute, 0)
+        rtc.device.datetime = dt.timetuple()
+
+        return value
 
 
 class SceneManager:
