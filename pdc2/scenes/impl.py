@@ -1,7 +1,14 @@
 from adafruit_datetime import datetime
 
 from pdc.hardware import rtc
-from pdc2.scenes.base import BUTTON_ESC, Scene
+from pdc2.scenes.base import (
+    BUTTON_ESC,
+    DurationScene,
+    MenuScene,
+    PercentageScene,
+    Scene,
+    TimeScene,
+)
 from pdc2.scenes.exceptions import SceneValueError
 
 
@@ -15,13 +22,13 @@ class ScreenOffScene(Scene):
         return []
 
 
-class MainMenuScene(Scene.Menu):
+class MainMenuScene(MenuScene):
     def __init__(self, manager, parent=None):
         super().__init__(manager, parent)
         self.entries = [MotorAMenuScene, Scene, SystemTimeScene]
 
 
-class MotorAMenuScene(Scene.Menu):
+class MotorAMenuScene(MenuScene):
     name = "Motor A"
 
     def __init__(self, manager, parent=None):
@@ -29,7 +36,7 @@ class MotorAMenuScene(Scene.Menu):
         self.entries = [MotorAOpenMenuScene, Scene]
 
 
-class MotorAOpenMenuScene(Scene.Menu):
+class MotorAOpenMenuScene(MenuScene):
     name = "Opening settings"
 
     def __init__(self, manager, parent=None):
@@ -46,19 +53,19 @@ class MotorAOpenNowScene(Scene):
     name = "Open now"
 
 
-class MotorAOpenTimeScene(Scene.Time):
+class MotorAOpenTimeScene(TimeScene):
     name = "Time"
 
 
-class MotorAOpenSpeedScene(Scene.Percentage):
+class MotorAOpenSpeedScene(PercentageScene):
     name = "Speed"
 
 
-class MotorAOpenDurationScene(Scene.Duration):
+class MotorAOpenDurationScene(DurationScene):
     name = "Duration"
 
 
-class SystemTimeScene(Scene.Time):
+class SystemTimeScene(TimeScene):
     name = "System time"
 
     def __init__(self, manager, parent=None):

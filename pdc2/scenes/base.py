@@ -24,12 +24,6 @@ BUTTON_OK = 5
 
 
 class Scene:
-    Duration = None
-    Menu = None
-    Number = None
-    Percentage = None
-    Time = None
-
     def __init__(self, manager, parent=None):
         self.manager = manager
         self.parent = parent
@@ -276,10 +270,3 @@ class SceneManager:
                 self.current_scene.handle_event(key_event)
 
             await asyncio.sleep(0)
-
-
-Scene.Duration = DurationScene
-Scene.Menu = MenuScene
-Scene.Number = NumberScene
-Scene.Percentage = PercentageScene
-Scene.Time = TimeScene
