@@ -75,9 +75,35 @@ class MotorAOpenTimeScene(MotorTimeScene):
 class MotorAOpenSpeedScene(PercentageScene):
     name = "Speed"
 
+    def __init__(self, manager, parent=None):
+        super().__init__(manager, parent)
+        self._set_input_value(self._get_motor_data().get("p"))
+
+    def _get_motor_data(self):
+        return state.get("ao")
+
+    def handle_save(self):
+        value = self._get_output_value()
+
+        self._get_motor_data()["p"] = value
+        return value
+
 
 class MotorAOpenDurationScene(DurationScene):
     name = "Duration"
+
+    def __init__(self, manager, parent=None):
+        super().__init__(manager, parent)
+        self._set_input_value(self._get_motor_data().get("d"))
+
+    def _get_motor_data(self):
+        return state.get("ao")
+
+    def handle_save(self):
+        value = self._get_output_value()
+
+        self._get_motor_data()["d"] = value
+        return value
 
 
 class SystemTimeScene(TimeScene):
