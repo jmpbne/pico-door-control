@@ -2,7 +2,6 @@ import displayio
 import terminalio
 from displayio import Group, I2CDisplay
 
-from adafruit_bitmap_font import bitmap_font
 from adafruit_display_text.bitmap_label import Label
 from adafruit_displayio_sh1106 import SH1106
 
