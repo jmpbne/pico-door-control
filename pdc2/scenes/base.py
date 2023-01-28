@@ -272,7 +272,7 @@ class SceneManager:
 
         while True:
             key_event = keys_device.events.get()
-            if key_event and key_event.released:
+            if key_event and key_event.pressed:
                 self.current_scene.handle_event(key_event)
 
             await asyncio.sleep(0)
