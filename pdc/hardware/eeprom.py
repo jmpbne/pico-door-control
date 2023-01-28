@@ -1,7 +1,8 @@
 from adafruit_24lc32 import EEPROM_I2C
 
-from pdc import config, state
+from pdc import config
 from pdc.hardware import i2c
+from pdc2 import state
 
 device = None
 
