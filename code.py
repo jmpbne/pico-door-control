@@ -1,7 +1,8 @@
 import asyncio
 
 from pdc.hardware import display, i2c, keys, rtc
-from pdc2.scenes import SceneManager
+from pdc2.scenes.base import SceneManager
+from pdc2.scenes.impl import ScreenOffScene
 
 
 async def main():
@@ -10,7 +11,7 @@ async def main():
     display.init_display()
     keys.init_keys()
 
-    sm = SceneManager()
+    sm = SceneManager(ScreenOffScene)
 
     await sm.poll()
 

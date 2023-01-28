@@ -1,9 +1,9 @@
 import asyncio
 import math
 
-from adafruit_datetime import datetime, time
+from adafruit_datetime import time
 
-from pdc.hardware import display, keys, rtc
+from pdc.hardware import display, keys
 
 DISPLAY_BUTTON_A_COL = 0
 DISPLAY_BUTTON_B_COL = 5
@@ -24,10 +24,13 @@ BUTTON_OK = 5
 INVALID_OUTPUT = object()
 
 
-# Base scenes
-
-
 class Scene:
+    Duration = None
+    Menu = None
+    Number = None
+    Percentage = None
+    Time = None
+
     def __init__(self, manager, parent=None):
         self.manager = manager
         self.parent = parent
@@ -251,88 +254,10 @@ class DurationScene(NumberScene):
         return data
 
 
-# Scene implementations
-
-
-class ScreenOffScene(Scene):
-    def handle_event(self, event):
-        if event.key_number == BUTTON_ESC:
-            self.manager.switch_to_new_scene(MainMenuScene)
-
-    @property
-    def display_data(self):
-        return []
-
-
-class MainMenuScene(MenuScene):
-    def __init__(self, manager, parent=None):
-        super().__init__(manager, parent)
-        self.entries = [MotorAMenuScene, Scene, SystemTimeScene]
-
-
-class MotorAMenuScene(MenuScene):
-    name = "Motor A"
-
-    def __init__(self, manager, parent=None):
-        super().__init__(manager, parent)
-        self.entries = [MotorAOpenMenuScene, Scene]
-
-
-class MotorAOpenMenuScene(MenuScene):
-    name = "Opening settings"
-
-    def __init__(self, manager, parent=None):
-        super().__init__(manager, parent)
-        self.entries = [
-            MotorAOpenNowScene,
-            MotorAOpenTimeScene,
-            MotorAOpenSpeedScene,
-            MotorAOpenDurationScene,
-        ]
-
-
-class MotorAOpenNowScene(Scene):
-    name = "Open now"
-
-
-class MotorAOpenTimeScene(TimeScene):
-    name = "Time"
-
-
-class MotorAOpenSpeedScene(PercentageScene):
-    name = "Speed"
-
-
-class MotorAOpenDurationScene(DurationScene):
-    name = "Duration"
-
-
-class SystemTimeScene(TimeScene):
-    name = "System time"
-
-    def __init__(self, manager, parent=None):
-        super().__init__(manager, parent)
-
-        if rtc.device.lost_power:
-            self._set_input_value(None)
-        else:
-            self._set_input_value(datetime.now())
-
-    def handle_save(self):
-        value = super().handle_save()
-        if value is None:
-            return INVALID_OUTPUT
-
-        dt = datetime(2000, 1, 1, value.hour, value.minute, 0)
-        rtc.device.datetime = dt.timetuple()
-
-        return value
-
-
 class SceneManager:
-    def __init__(self):
+    def __init__(self, start_scene_class):
         self.current_scene = None
-        self.switch_to_new_scene(ScreenOffScene)
+        self.switch_to_new_scene(start_scene_class)
 
     def switch_to_scene(self, scene):
         self.current_scene = scene
@@ -353,3 +278,10 @@ class SceneManager:
                 self.current_scene.handle_event(key_event)
 
             await asyncio.sleep(0)
+
+
+Scene.Duration = DurationScene
+Scene.Menu = MenuScene
+Scene.Number = NumberScene
+Scene.Percentage = PercentageScene
+Scene.Time = TimeScene
