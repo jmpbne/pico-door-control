@@ -4,6 +4,7 @@ import math
 from adafruit_datetime import time
 
 from pdc.hardware import display, keys
+from pdc2 import state
 from pdc2.scenes.exceptions import SceneValueError
 
 DISPLAY_BUTTON_A_COL = 0
@@ -218,12 +219,11 @@ class TimeScene(NumberScene):
 
 
 class MotorTimeScene(TimeScene):
+    motor_id = None
+
     def __init__(self, manager, parent=None):
         super().__init__(manager, parent)
-        self._set_input_value(self._get_motor_data())
-
-    def _get_motor_data(self):
-        return {}
+        self._set_input_value(state.get_motor_data(self.motor_id))
 
     def _get_output_value(self):
         value = super()._get_output_value()
@@ -243,7 +243,7 @@ class MotorTimeScene(TimeScene):
     def handle_save(self):
         value = self._get_output_value()
 
-        self._get_motor_data().update(**value)
+        state.update_motor_data(self.motor_id, value)
         return value
 
 
@@ -280,17 +280,16 @@ class PercentageScene(NumberScene):
 
 
 class MotorPercentageScene(PercentageScene):
+    motor_id = None
+
     def __init__(self, manager, parent=None):
         super().__init__(manager, parent)
-        self._set_input_value(self._get_motor_data().get("p"))
-
-    def _get_motor_data(self):
-        return {}
+        self._set_input_value(state.get_motor_data(self.motor_id).get("p"))
 
     def handle_save(self):
         value = self._get_output_value()
 
-        self._get_motor_data()["p"] = value
+        state.update_motor_data(self.motor_id, {"p": value})
         return value
 
 
@@ -311,17 +310,16 @@ class DurationScene(NumberScene):
 
 
 class MotorDurationScene(DurationScene):
+    motor_id = None
+
     def __init__(self, manager, parent=None):
         super().__init__(manager, parent)
-        self._set_input_value(self._get_motor_data().get("d"))
-
-    def _get_motor_data(self):
-        return {}
+        self._set_input_value(state.get_motor_data(self.motor_id).get("d"))
 
     def handle_save(self):
         value = self._get_output_value()
 
-        self._get_motor_data()["d"] = value
+        state.update_motor_data(self.motor_id, {"d": value})
         return value
 
 

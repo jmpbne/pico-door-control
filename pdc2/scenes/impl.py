@@ -1,7 +1,6 @@
 from adafruit_datetime import datetime
 
 from pdc.hardware import rtc
-from pdc2 import state
 from pdc2.scenes.base import (
     BUTTON_ESC,
     MenuScene,
@@ -53,27 +52,22 @@ class MotorAOpenMenuScene(MenuScene):
 
 class MotorAOpenNowScene(Scene):
     name = "Open now"
+    motor_id = "ao"
 
 
 class MotorAOpenTimeScene(MotorTimeScene):
     name = "Time"
-
-    def _get_motor_data(self):
-        return state.get("ao")
+    motor_id = "ao"
 
 
 class MotorAOpenSpeedScene(MotorPercentageScene):
     name = "Speed"
-
-    def _get_motor_data(self):
-        return state.get("ao")
+    motor_id = "ao"
 
 
 class MotorAOpenDurationScene(MotorDurationScene):
     name = "Duration"
-
-    def _get_motor_data(self):
-        return state.get("ao")
+    motor_id = "ao"
 
 
 class MotorACloseMenuScene(MenuScene):
@@ -91,27 +85,22 @@ class MotorACloseMenuScene(MenuScene):
 
 class MotorACloseNowScene(Scene):
     name = "Close now"
+    motor_id = "ac"
 
 
 class MotorACloseTimeScene(MotorTimeScene):
     name = "Time"
-
-    def _get_motor_data(self):
-        return state.get("ac")
+    motor_id = "ac"
 
 
 class MotorACloseSpeedScene(MotorPercentageScene):
     name = "Speed"
-
-    def _get_motor_data(self):
-        return state.get("ac")
+    motor_id = "ac"
 
 
 class MotorACloseDurationScene(MotorDurationScene):
     name = "Duration"
-
-    def _get_motor_data(self):
-        return state.get("ac")
+    motor_id = "ac"
 
 
 class MotorBOpenMenuScene(MenuScene):
@@ -137,27 +126,22 @@ class MotorBMenuScene(MenuScene):
 
 class MotorBOpenNowScene(Scene):
     name = "Open now"
+    motor_id = "bo"
 
 
 class MotorBOpenTimeScene(MotorTimeScene):
     name = "Time"
-
-    def _get_motor_data(self):
-        return state.get("bo")
+    motor_id = "bo"
 
 
 class MotorBOpenSpeedScene(MotorPercentageScene):
     name = "Speed"
-
-    def _get_motor_data(self):
-        return state.get("bo")
+    motor_id = "bo"
 
 
 class MotorBOpenDurationScene(MotorDurationScene):
     name = "Duration"
-
-    def _get_motor_data(self):
-        return state.get("bo")
+    motor_id = "bo"
 
 
 class MotorBCloseMenuScene(MenuScene):
@@ -175,27 +159,22 @@ class MotorBCloseMenuScene(MenuScene):
 
 class MotorBCloseNowScene(Scene):
     name = "Close now"
+    motor_id = "bc"
 
 
 class MotorBCloseTimeScene(MotorTimeScene):
     name = "Time"
-
-    def _get_motor_data(self):
-        return state.get("bc")
+    motor_id = "bc"
 
 
 class MotorBCloseSpeedScene(MotorPercentageScene):
     name = "Speed"
-
-    def _get_motor_data(self):
-        return state.get("bc")
+    motor_id = "bc"
 
 
 class MotorBCloseDurationScene(MotorDurationScene):
     name = "Duration"
-
-    def _get_motor_data(self):
-        return state.get("bc")
+    motor_id = "bc"
 
 
 class SystemTimeScene(TimeScene):
