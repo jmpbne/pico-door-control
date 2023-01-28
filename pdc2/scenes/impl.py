@@ -1,10 +1,12 @@
 from adafruit_datetime import datetime
 
 from pdc.hardware import rtc
+from pdc2 import state
 from pdc2.scenes.base import (
     BUTTON_ESC,
     DurationScene,
     MenuScene,
+    MotorTimeScene,
     PercentageScene,
     Scene,
     TimeScene,
@@ -53,8 +55,21 @@ class MotorAOpenNowScene(Scene):
     name = "Open now"
 
 
-class MotorAOpenTimeScene(TimeScene):
+class MotorAOpenTimeScene(MotorTimeScene):
     name = "Time"
+
+    def __init__(self, manager, parent=None):
+        super().__init__(manager, parent)
+        self._set_input_value(self._get_motor_data())
+
+    def _get_motor_data(self):
+        return state.get("ao")
+
+    def handle_save(self):
+        value = self._get_output_value()
+
+        self._get_motor_data().update(**value)
+        return value
 
 
 class MotorAOpenSpeedScene(PercentageScene):

@@ -140,7 +140,10 @@ class NumberScene(Scene):
                 self.manager.switch_to_parent_scene()
 
     def handle_save(self):
-        print(f"Current value: {self._get_output_value()}")
+        value = self._get_output_value()
+
+        print(f"Current value: {value}")
+        return value
 
     @property
     def display_data(self):
@@ -196,6 +199,23 @@ class TimeScene(NumberScene):
         data.append(display.write(DISPLAY_VALUE_ROW, 10, ":"))
 
         return data
+
+
+class MotorTimeScene(TimeScene):
+    def _get_output_value(self):
+        value = super()._get_output_value()
+        if value:
+            return {"h": value.hour, "m": value.minute}
+        else:
+            return {"h": None, "m": None}
+
+    def _set_input_value(self, value):
+        try:
+            h1, h2 = divmod(value.get("h"), 10)
+            m1, m2 = divmod(value.get("m"), 10)
+            self.current_digits = [h1, h2, m1, m2]
+        except TypeError:
+            self.current_digits = [None, None, None, None]
 
 
 class PercentageScene(NumberScene):
