@@ -27,7 +27,7 @@ class ScreenOffScene(Scene):
 class MainMenuScene(MenuScene):
     def __init__(self, manager, parent=None):
         super().__init__(manager, parent)
-        self.entries = [MotorAMenuScene, Scene, SystemTimeScene]
+        self.entries = [MotorAMenuScene, MotorBMenuScene, SystemTimeScene]
 
 
 class MotorAMenuScene(MenuScene):
@@ -35,7 +35,7 @@ class MotorAMenuScene(MenuScene):
 
     def __init__(self, manager, parent=None):
         super().__init__(manager, parent)
-        self.entries = [MotorAOpenMenuScene, Scene]
+        self.entries = [MotorAOpenMenuScene, MotorACloseMenuScene]
 
 
 class MotorAOpenMenuScene(MenuScene):
@@ -74,6 +74,128 @@ class MotorAOpenDurationScene(MotorDurationScene):
 
     def _get_motor_data(self):
         return state.get("ao")
+
+
+class MotorACloseMenuScene(MenuScene):
+    name = "Closing settings"
+
+    def __init__(self, manager, parent=None):
+        super().__init__(manager, parent)
+        self.entries = [
+            MotorACloseNowScene,
+            MotorACloseTimeScene,
+            MotorACloseSpeedScene,
+            MotorACloseDurationScene,
+        ]
+
+
+class MotorACloseNowScene(Scene):
+    name = "Close now"
+
+
+class MotorACloseTimeScene(MotorTimeScene):
+    name = "Time"
+
+    def _get_motor_data(self):
+        return state.get("ac")
+
+
+class MotorACloseSpeedScene(MotorPercentageScene):
+    name = "Speed"
+
+    def _get_motor_data(self):
+        return state.get("ac")
+
+
+class MotorACloseDurationScene(MotorDurationScene):
+    name = "Duration"
+
+    def _get_motor_data(self):
+        return state.get("ac")
+
+
+class MotorBOpenMenuScene(MenuScene):
+    name = "Opening settings"
+
+    def __init__(self, manager, parent=None):
+        super().__init__(manager, parent)
+        self.entries = [
+            MotorBOpenNowScene,
+            MotorBOpenTimeScene,
+            MotorBOpenSpeedScene,
+            MotorBOpenDurationScene,
+        ]
+
+
+class MotorBMenuScene(MenuScene):
+    name = "Motor B"
+
+    def __init__(self, manager, parent=None):
+        super().__init__(manager, parent)
+        self.entries = [MotorBOpenMenuScene, MotorBCloseMenuScene]
+
+
+class MotorBOpenNowScene(Scene):
+    name = "Open now"
+
+
+class MotorBOpenTimeScene(MotorTimeScene):
+    name = "Time"
+
+    def _get_motor_data(self):
+        return state.get("bo")
+
+
+class MotorBOpenSpeedScene(MotorPercentageScene):
+    name = "Speed"
+
+    def _get_motor_data(self):
+        return state.get("bo")
+
+
+class MotorBOpenDurationScene(MotorDurationScene):
+    name = "Duration"
+
+    def _get_motor_data(self):
+        return state.get("bo")
+
+
+class MotorBCloseMenuScene(MenuScene):
+    name = "Closing settings"
+
+    def __init__(self, manager, parent=None):
+        super().__init__(manager, parent)
+        self.entries = [
+            MotorBCloseNowScene,
+            MotorBCloseTimeScene,
+            MotorBCloseSpeedScene,
+            MotorBCloseDurationScene,
+        ]
+
+
+class MotorBCloseNowScene(Scene):
+    name = "Close now"
+
+
+class MotorBCloseTimeScene(MotorTimeScene):
+    name = "Time"
+
+    def _get_motor_data(self):
+        return state.get("bc")
+
+
+class MotorBCloseSpeedScene(MotorPercentageScene):
+    name = "Speed"
+
+    def _get_motor_data(self):
+        return state.get("bc")
+
+
+class MotorBCloseDurationScene(MotorDurationScene):
+    name = "Duration"
+
+    def _get_motor_data(self):
+        return state.get("bc")
 
 
 class SystemTimeScene(TimeScene):
