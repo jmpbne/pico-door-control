@@ -244,6 +244,7 @@ class MotorTimeScene(TimeScene):
         value = self._get_output_value()
 
         state.update_motor_data(self.motor_id, value)
+        state.reset_motor_timestamp(self.motor_id)
         return value
 
 

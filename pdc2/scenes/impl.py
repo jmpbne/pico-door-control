@@ -1,6 +1,7 @@
 from adafruit_datetime import datetime
 
 from pdc.hardware import rtc
+from pdc2 import state
 from pdc2.scenes.base import (
     BUTTON_ESC,
     MenuScene,
@@ -196,5 +197,6 @@ class SystemTimeScene(TimeScene):
 
         dt = datetime(2000, 1, 1, value.hour, value.minute, 0)
         rtc.device.datetime = dt.timetuple()
+        state.reset_motors_timestamp()
 
         return value

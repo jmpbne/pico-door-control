@@ -21,40 +21,40 @@ async def scheduler():
         now_timestamp = time.mktime(now.timetuple())
 
         print("---")
-        for key, data in state._state.items():
-            timestamp = data.get("t")
-            oneshot = data.get("1")
-            hour = data.get("h")
-            minute = data.get("m")
+        for motor_id, motor_data in state._state.items():
+            timestamp = motor_data.get("t")
+            oneshot = motor_data.get("1")
+            hour = motor_data.get("h")
+            minute = motor_data.get("m")
 
             if not timestamp:
                 if oneshot:
-                    print(f"'{key}' is an one-shot task without timestamp, skipping")
+                    print(f"'{motor_id}' is an one-shot task without timestamp, skipping")
                     continue
 
                 if hour is None or minute is None:
-                    print(f"'{key}' is not enabled, skipping")
+                    print(f"'{motor_id}' is not enabled, skipping")
                     continue
 
-                print(f"'{key}' does not have timestamp yet")
+                print(f"'{motor_id}' does not have timestamp yet")
 
                 dt = datetime.datetime.combine(now, datetime.time(hour, minute))
                 if now > dt:
                     dt += datetime.timedelta(days=1)
                 timestamp = time.mktime(dt.timetuple())
-                data["t"] = timestamp
+                motor_data["t"] = timestamp
 
-                print(f"'{key}' has new timestamp value of {timestamp}")
+                print(f"'{motor_id}' has new timestamp value of {timestamp}")
 
             if timestamp > now_timestamp:
-                print(f"'{key}' is skipped (now={now_timestamp}, schedule={timestamp})")
+                print(f"'{motor_id}' is delayed (now={now_timestamp}, schedule={timestamp})")
             else:
-                print(f"'{key}' is running (now={now_timestamp}, schedule={timestamp})")
+                print(f"'{motor_id}' is running (now={now_timestamp}, schedule={timestamp})")
                 if oneshot:
-                    print(f"'{key}' is an one-shot task")
-                    data["t"] = None
+                    print(f"'{motor_id}' is an one-shot task")
+                    motor_data["t"] = None
                 else:
-                    print(f"'{key}' is not one-shot task, setting new timestamp")
-                    data["t"] = timestamp + SECONDS_IN_A_DAY
+                    print(f"'{motor_id}' is not one-shot task, setting new timestamp")
+                    motor_data["t"] = timestamp + SECONDS_IN_A_DAY
 
         await asyncio.sleep(SLEEP_VALUE)

@@ -5,7 +5,7 @@ from adafruit_datetime import datetime
 
 from pdc.hardware import eeprom
 
-DEFAULT_MOTOR_STATE = {"h": None, "m": None, "p": 1.0, "d": 1.0}
+DEFAULT_MOTOR_STATE = {"h": None, "m": None, "p": 1.0, "d": 1.0, "t": None}
 
 _state = {}
 
@@ -31,6 +31,16 @@ def append_oneshot_motor_data(motor_id):
     data["t"] = time.time()
 
     _state[motor_id + "1"] = data
+
+
+def reset_motor_timestamp(motor_id):
+    data = get_motor_data(motor_id)
+    data["t"] = None
+
+
+def reset_motors_timestamp():
+    for motor_id in _state.keys():
+        reset_motor_timestamp(motor_id)
 
 
 def load_from_eeprom():
