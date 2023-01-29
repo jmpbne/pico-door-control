@@ -1,13 +1,13 @@
 import asyncio
 import time
 
-from adafruit_datetime import datetime, timedelta
-from adafruit_datetime import time as dtime
+import adafruit_datetime as datetime
 
 from pdc.hardware import rtc
 from pdc2 import state
 
 SLEEP_VALUE = 5.0
+SECONDS_IN_A_DAY = 24 * 60 * 60
 
 
 async def scheduler():
@@ -17,46 +17,44 @@ async def scheduler():
             await asyncio.sleep(SLEEP_VALUE)
             continue
 
-        now = datetime.now()
-        now_epoch = time.mktime(now.timetuple())
+        now = datetime.datetime.now()
+        now_timestamp = time.mktime(now.timetuple())
 
         print("---")
         for key, data in state._state.items():
+            timestamp = data.get("t")
+            oneshot = data.get("1")
             hour = data.get("h")
             minute = data.get("m")
 
-            if (
-                (not data.get("t"))
-                and (not data.get("1"))
-                and (hour is not None)
-                and (minute is not None)
-            ):
-                print(f"*'{key}' does not have timestamp set")
-
-                dt1 = datetime.combine(now, dtime(hour, minute))
-                dt2 = dt1 + timedelta(days=1)
-
-                if now < dt1:
-                    data["t"] = time.mktime(dt1.timetuple())
-                    print(f"*'{key}': it is {now}, next run on {dt1}")
-                else:
-                    data["t"] = time.mktime(dt2.timetuple())
-                    print(f"*[sched] '{key}': it is {now}, next run on {dt2}")
-
-            timestamp = data.get("t")
             if not timestamp:
-                print(f"*'{key}: timestamp not set, ignoring")
-                continue
+                if oneshot:
+                    print(f"'{key}' is an one-shot task without timestamp, skipping")
+                    continue
 
-            if now_epoch > timestamp:
-                print(f"'{key}': it is {now_epoch}, scheduled for {timestamp}, running")
-                if data.get("1"):
-                    print(f"'{key}' is oneshot, not setting timestamp")
+                if hour is None or minute is None:
+                    print(f"'{key}' is not enabled, skipping")
+                    continue
+
+                print(f"'{key}' does not have timestamp yet")
+
+                dt = datetime.datetime.combine(now, datetime.time(hour, minute))
+                if now > dt:
+                    dt += datetime.timedelta(days=1)
+                timestamp = time.mktime(dt.timetuple())
+                data["t"] = timestamp
+
+                print(f"'{key}' has new timestamp value of {timestamp}")
+
+            if timestamp > now_timestamp:
+                print(f"'{key}' is skipped (now={now_timestamp}, schedule={timestamp})")
+            else:
+                print(f"'{key}' is running (now={now_timestamp}, schedule={timestamp})")
+                if oneshot:
+                    print(f"'{key}' is an one-shot task")
                     data["t"] = None
                 else:
-                    print(f"'{key}' is not oneshot, setting new timestamp")
-                    data["t"] = timestamp + (60 * 60 * 24)
-            else:
-                print(f"'{key}': it is {now_epoch}, scheduled for {timestamp}, ignoring")
+                    print(f"'{key}' is not one-shot task, setting new timestamp")
+                    data["t"] = timestamp + SECONDS_IN_A_DAY
 
         await asyncio.sleep(SLEEP_VALUE)
