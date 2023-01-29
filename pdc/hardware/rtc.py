@@ -1,10 +1,9 @@
 import rtc
 
 from adafruit_bus_device.i2c_device import I2CDevice
-from adafruit_datetime import datetime
 from adafruit_ds3231 import DS3231
 
-from pdc import config, state
+from pdc import config
 from pdc.hardware import i2c
 
 device = None

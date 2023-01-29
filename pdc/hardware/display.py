@@ -5,7 +5,7 @@ from displayio import Group, I2CDisplay
 from adafruit_display_text.bitmap_label import Label
 from adafruit_displayio_sh1106 import SH1106
 
-from pdc import config, state
+from pdc import config
 from pdc.hardware import i2c
 
 try:
@@ -41,8 +41,8 @@ def init_display() -> None:
     device.show(Group())
     device.auto_refresh = True
 
-    if not state.is_display_awake():
-        sleep()
+    # if not state.is_display_awake():
+    #     sleep()
 
 
 def update(data: List[WriteCommand]) -> None:
@@ -74,19 +74,19 @@ def update(data: List[WriteCommand]) -> None:
 
 def sleep() -> None:
     device.sleep()
-    state.set_display_awake(False)
+    # state.set_display_awake(False)
 
 
 def wake() -> None:
     device.wake()
-    state.set_display_awake(True)
+    # state.set_display_awake(True)
 
 
-def toggle() -> None:
-    if state.is_display_awake():
-        sleep()
-    else:
-        wake()
+# def toggle() -> None:
+#     if state.is_display_awake():
+#         sleep()
+#     else:
+#         wake()
 
 
 def write(row: int, col: int, text: str, *, cond: Any = True) -> WriteCommand:
