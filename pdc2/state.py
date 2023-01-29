@@ -1,4 +1,5 @@
 import json
+import time
 
 from adafruit_datetime import datetime
 
@@ -27,6 +28,7 @@ def append_oneshot_motor_data(motor_id):
     data["h"] = dt.hour
     data["m"] = dt.minute
     data["1"] = True
+    data["t"] = time.time()
 
     _state[motor_id + "1"] = data
 
