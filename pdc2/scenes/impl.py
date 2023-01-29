@@ -13,6 +13,7 @@ from pdc2.scenes.base import (
     TimeScene,
 )
 from pdc2.scenes.exceptions import SceneValueError
+from pdc2.strings import _
 
 
 class ScreenOffScene(Scene):
@@ -32,7 +33,7 @@ class MainMenuScene(MenuScene):
 
 
 class MotorAMenuScene(MenuScene):
-    name = "Motor A"
+    name = _("Motor A")
 
     def __init__(self, manager, parent=None):
         super().__init__(manager, parent)
@@ -40,7 +41,7 @@ class MotorAMenuScene(MenuScene):
 
 
 class MotorAOpenMenuScene(MenuScene):
-    name = "Opening settings"
+    name = _("Opening settings")
 
     def __init__(self, manager, parent=None):
         super().__init__(manager, parent)
@@ -53,27 +54,23 @@ class MotorAOpenMenuScene(MenuScene):
 
 
 class MotorAOpenNowScene(MotorNowScene):
-    name = "Open now"
     motor_id = "ao"
 
 
 class MotorAOpenTimeScene(MotorTimeScene):
-    name = "Time"
     motor_id = "ao"
 
 
 class MotorAOpenSpeedScene(MotorPercentageScene):
-    name = "Speed"
     motor_id = "ao"
 
 
 class MotorAOpenDurationScene(MotorDurationScene):
-    name = "Duration"
     motor_id = "ao"
 
 
 class MotorACloseMenuScene(MenuScene):
-    name = "Closing settings"
+    name = _("Closing settings")
 
     def __init__(self, manager, parent=None):
         super().__init__(manager, parent)
@@ -86,27 +83,31 @@ class MotorACloseMenuScene(MenuScene):
 
 
 class MotorACloseNowScene(MotorNowScene):
-    name = "Close now"
     motor_id = "ac"
 
 
 class MotorACloseTimeScene(MotorTimeScene):
-    name = "Time"
     motor_id = "ac"
 
 
 class MotorACloseSpeedScene(MotorPercentageScene):
-    name = "Speed"
     motor_id = "ac"
 
 
 class MotorACloseDurationScene(MotorDurationScene):
-    name = "Duration"
     motor_id = "ac"
 
 
+class MotorBMenuScene(MenuScene):
+    name = _("Motor B")
+
+    def __init__(self, manager, parent=None):
+        super().__init__(manager, parent)
+        self.entries = [MotorBOpenMenuScene, MotorBCloseMenuScene]
+
+
 class MotorBOpenMenuScene(MenuScene):
-    name = "Opening settings"
+    name = _("Opening settings")
 
     def __init__(self, manager, parent=None):
         super().__init__(manager, parent)
@@ -118,36 +119,24 @@ class MotorBOpenMenuScene(MenuScene):
         ]
 
 
-class MotorBMenuScene(MenuScene):
-    name = "Motor B"
-
-    def __init__(self, manager, parent=None):
-        super().__init__(manager, parent)
-        self.entries = [MotorBOpenMenuScene, MotorBCloseMenuScene]
-
-
 class MotorBOpenNowScene(MotorNowScene):
-    name = "Open now"
     motor_id = "bo"
 
 
 class MotorBOpenTimeScene(MotorTimeScene):
-    name = "Time"
     motor_id = "bo"
 
 
 class MotorBOpenSpeedScene(MotorPercentageScene):
-    name = "Speed"
     motor_id = "bo"
 
 
 class MotorBOpenDurationScene(MotorDurationScene):
-    name = "Duration"
     motor_id = "bo"
 
 
 class MotorBCloseMenuScene(MenuScene):
-    name = "Closing settings"
+    name = _("Closing settings")
 
     def __init__(self, manager, parent=None):
         super().__init__(manager, parent)
@@ -160,27 +149,23 @@ class MotorBCloseMenuScene(MenuScene):
 
 
 class MotorBCloseNowScene(MotorNowScene):
-    name = "Close now"
     motor_id = "bc"
 
 
 class MotorBCloseTimeScene(MotorTimeScene):
-    name = "Time"
     motor_id = "bc"
 
 
 class MotorBCloseSpeedScene(MotorPercentageScene):
-    name = "Speed"
     motor_id = "bc"
 
 
 class MotorBCloseDurationScene(MotorDurationScene):
-    name = "Duration"
     motor_id = "bc"
 
 
 class SystemTimeScene(TimeScene):
-    name = "System time"
+    name = _("System time")
 
     def __init__(self, manager, parent=None):
         super().__init__(manager, parent)

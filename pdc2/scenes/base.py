@@ -6,6 +6,7 @@ from adafruit_datetime import time
 from pdc.hardware import display, keys
 from pdc2 import state
 from pdc2.scenes.exceptions import SceneValueError
+from pdc2.strings import _
 
 DISPLAY_BUTTON_A_COL = 0
 DISPLAY_BUTTON_B_COL = 5
@@ -52,7 +53,7 @@ class MessageScene(Scene):
     def display_data(self):
         return [
             display.write(0, 0, self.message),
-            display.write(DISPLAY_LAST_ROW, DISPLAY_BUTTON_D_COL, "   OK>"),
+            display.write(DISPLAY_LAST_ROW, DISPLAY_BUTTON_D_COL, _("   OK>")),
         ]
 
 
@@ -81,10 +82,10 @@ class MenuScene(Scene):
     def display_data(self):
         data = [
             display.write(DISPLAY_MENU_CURSOR_ROW, 0, "*"),
-            display.write(DISPLAY_LAST_ROW, DISPLAY_BUTTON_A_COL, "<Back "),
-            display.write(DISPLAY_LAST_ROW, DISPLAY_BUTTON_B_COL, "  Up  "),
-            display.write(DISPLAY_LAST_ROW, DISPLAY_BUTTON_C_COL, " Down "),
-            display.write(DISPLAY_LAST_ROW, DISPLAY_BUTTON_D_COL, "   OK>"),
+            display.write(DISPLAY_LAST_ROW, DISPLAY_BUTTON_A_COL, _("<Back ")),
+            display.write(DISPLAY_LAST_ROW, DISPLAY_BUTTON_B_COL,  ("   ^  ")),
+            display.write(DISPLAY_LAST_ROW, DISPLAY_BUTTON_C_COL,  ("  v   ")),
+            display.write(DISPLAY_LAST_ROW, DISPLAY_BUTTON_D_COL, _("   OK>")),
         ]
 
         for idx in range(DISPLAY_MENU_ROWS):
@@ -169,8 +170,8 @@ class NumberScene(Scene):
             display.write(DISPLAY_VALUE_ROW, 8, self._get_digit_str(1)),
             display.write(DISPLAY_VALUE_ROW, 12, self._get_digit_str(2)),
             display.write(DISPLAY_VALUE_ROW, 16, self._get_digit_str(3)),
-            display.write(DISPLAY_LAST_ROW, DISPLAY_BUTTON_A_COL, "<Cancel"),
-            display.write(DISPLAY_LAST_ROW, DISPLAY_BUTTON_D_COL, "   OK>"),
+            display.write(DISPLAY_LAST_ROW, DISPLAY_BUTTON_A_COL, _("<Cancel")),
+            display.write(DISPLAY_LAST_ROW, DISPLAY_BUTTON_D_COL, _("   OK>")),
         ]
 
 
@@ -219,6 +220,7 @@ class TimeScene(NumberScene):
 
 
 class MotorTimeScene(TimeScene):
+    name = _("Time")
     motor_id = None
 
     def __init__(self, manager, parent=None):
@@ -281,6 +283,7 @@ class PercentageScene(NumberScene):
 
 
 class MotorPercentageScene(PercentageScene):
+    name = _("Speed")
     motor_id = None
 
     def __init__(self, manager, parent=None):
@@ -311,6 +314,7 @@ class DurationScene(NumberScene):
 
 
 class MotorDurationScene(DurationScene):
+    name = _("Duration")
     motor_id = None
 
     def __init__(self, manager, parent=None):
@@ -325,12 +329,13 @@ class MotorDurationScene(DurationScene):
 
 
 class MotorNowScene(MessageScene):
+    name = _("Run now")
     motor_id = None
 
     def __init__(self, manager, parent=None):
         super().__init__(manager, parent)
 
-        self.message = "Done"
+        self.message = _("Done")
         state.append_oneshot_motor_data(self.motor_id)
 
 
