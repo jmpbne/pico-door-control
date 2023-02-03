@@ -1,3 +1,3 @@
 #!/usr/bin/env bash
 
-rsync -ruv pdc pdc2 code.py "/media/$USER/CIRCUITPY"
+rsync -ruv controller code.py "/media/$USER/CIRCUITPY"
