@@ -2,7 +2,7 @@ from controller.hardware import rtc
 
 
 def main():
-    pass
+    rtc.init()
 
 
 if __name__ == "__main__":
