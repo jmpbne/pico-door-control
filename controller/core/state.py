@@ -1,4 +1,4 @@
-from controller.hardware import nvm
+from controller.core import nvm
 
 data = {}
 

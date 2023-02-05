@@ -1,4 +1,4 @@
-from controller.hardware import rtc
+from controller.core import rtc
 
 
 def main():
