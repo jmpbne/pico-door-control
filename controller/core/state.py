@@ -3,6 +3,10 @@ from controller.core import nvm
 data = {}
 
 
+def init():
+    load_state()
+
+
 def load_state():
     data.clear()
     data.update(**nvm.read_nvm())
