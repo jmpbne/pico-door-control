@@ -34,7 +34,7 @@ def init():
     display.auto_refresh = True
 
 
-def render(*commands):
+def render(commands):
     group = displayio.Group()
 
     for x, y, text in commands:

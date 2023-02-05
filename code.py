@@ -1,5 +1,6 @@
 from controller.core import rtc, state
 from controller.menu import display, keys
+from controller.menu.scenes import SceneManager
 
 
 def main():
@@ -8,12 +9,10 @@ def main():
     display.init()
     keys.init()
 
-    display.render((0, 0, "FIRST"), (1, 1, "SECOND"), (2, 6, "THIRD"))
+    manager = SceneManager()
 
     while True:
-        event = keys.get_event()
-        if event:
-            print(event)
+        manager.poll()
 
 
 if __name__ == "__main__":
