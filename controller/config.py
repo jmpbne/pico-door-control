@@ -1,4 +1,8 @@
 import board
 
-I2C_SCL = board.GP17
-I2C_SDA = board.GP16
+I2C_DISPLAY_ADDRESS = 0x3C
+I2C_DISPLAY_SCL = board.GP15
+I2C_DISPLAY_SDA = board.GP14
+
+I2C_RTC_SCL = board.GP17
+I2C_RTC_SDA = board.GP16

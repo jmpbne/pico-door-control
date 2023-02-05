@@ -5,7 +5,8 @@ from adafruit_ds3231 import DS3231
 
 from controller import config
 
-i2c = I2C(config.I2C_SCL, config.I2C_SDA)
+i2c = I2C(config.I2C_RTC_SCL, config.I2C_RTC_SDA)
+
 rtc_internal = RTC()
 rtc_external = DS3231(i2c)
 
