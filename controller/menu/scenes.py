@@ -1,3 +1,4 @@
+from controller.core import rtc
 from controller.menu import display, keys
 
 
@@ -34,7 +35,10 @@ class EditScene(Scene):
 class IdleScene(StaticScene):
     @property
     def render_data(self):
-        return ((0, 0, "IdleScene"),)
+        if rtc.get_datetime() is None:
+            return ((0, 0, "NIE USTAWIONO ZEGARA"),)
+
+        return ()
 
 
 # Scene manager
