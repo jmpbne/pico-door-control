@@ -12,8 +12,9 @@ BUTTON_OK = 4
 
 
 class Scene:
-    def __init__(self, manager):
+    def __init__(self, manager, parent):
         self.manager = manager
+        self.parent = parent
 
     def handle_event(self, event):
         pass
@@ -24,8 +25,8 @@ class Scene:
 
 
 class OptionsScene(Scene):
-    def __init__(self, manager):
-        super().__init__(manager)
+    def __init__(self, manager, parent):
+        super().__init__(manager, parent)
 
         self.position = 0
         self.children = []
@@ -51,6 +52,8 @@ class OptionsScene(Scene):
             self.move_cursor_up()
         if event.key_number == BUTTON_DOWN:
             self.move_cursor_down()
+        if event.key_number == BUTTON_OK:
+            self.manager.switch_to_new_scene(self.children[self.position])
 
 
 # Scene implementations
@@ -59,9 +62,9 @@ class OptionsScene(Scene):
 class IdleScene(Scene):
     def handle_event(self, event):
         if event.key_number == BUTTON_LEFT:
-            self.manager.switch_scene(SystemOptionsScene)
+            self.manager.switch_to_new_scene(SystemOptionsScene)
         if event.key_number == BUTTON_RIGHT:
-            self.manager.switch_scene(OpenOptionsScene)
+            self.manager.switch_to_new_scene(OpenOptionsScene)
 
     @property
     def render_data(self):
@@ -72,8 +75,8 @@ class IdleScene(Scene):
 
 
 class OpenOptionsScene(OptionsScene):
-    def __init__(self, manager):
-        super().__init__(manager)
+    def __init__(self, manager, parent):
+        super().__init__(manager, parent)
 
         self.children = (
             DummyScene,
@@ -89,9 +92,9 @@ class OpenOptionsScene(OptionsScene):
         super().handle_event(event)
 
         if event.key_number == BUTTON_LEFT:
-            self.manager.switch_scene(IdleScene)
+            self.manager.switch_to_new_scene(IdleScene)
         if event.key_number == BUTTON_RIGHT:
-            self.manager.switch_scene(SystemOptionsScene)
+            self.manager.switch_to_new_scene(SystemOptionsScene)
 
     @property
     def render_data(self):
@@ -108,8 +111,8 @@ class OpenOptionsScene(OptionsScene):
 
 
 class SystemOptionsScene(OptionsScene):
-    def __init__(self, manager):
-        super().__init__(manager)
+    def __init__(self, manager, parent):
+        super().__init__(manager, parent)
 
         self.children = (DummyScene, DummyScene)
 
@@ -117,9 +120,9 @@ class SystemOptionsScene(OptionsScene):
         super().handle_event(event)
 
         if event.key_number == BUTTON_LEFT:
-            self.manager.switch_scene(OpenOptionsScene)
+            self.manager.switch_to_new_scene(OpenOptionsScene)
         if event.key_number == BUTTON_RIGHT:
-            self.manager.switch_scene(IdleScene)
+            self.manager.switch_to_new_scene(IdleScene)
 
     @property
     def render_data(self):
@@ -131,6 +134,10 @@ class SystemOptionsScene(OptionsScene):
 
 
 class DummyScene(Scene):
+    def handle_event(self, event):
+        if event.key_number == BUTTON_OK:
+            self.manager.switch_to_parent_scene()
+
     @property
     def render_data(self):
         return ((0, 0, "DummyScene"),)
@@ -142,10 +149,15 @@ class DummyScene(Scene):
 class SceneManager:
     def __init__(self):
         self.current_scene = None
-        self.switch_scene(IdleScene)
+        self.switch_to_new_scene(IdleScene)
 
-    def switch_scene(self, scene_class):
-        self.current_scene = scene_class(self)
+    def switch_to_parent_scene(self):
+        if parent := self.current_scene.parent:
+            self.current_scene = parent
+            self.render()
+
+    def switch_to_new_scene(self, scene_class):
+        self.current_scene = scene_class(self, self.current_scene)
         self.render()
 
     def render(self):
