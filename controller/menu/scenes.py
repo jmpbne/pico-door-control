@@ -53,7 +53,8 @@ class OptionsScene(Scene):
         if event.key_number == BUTTON_DOWN:
             self.move_cursor_down()
         if event.key_number == BUTTON_OK:
-            self.manager.switch_to_new_scene(self.children[self.position])
+            scene_class = self.children[self.position]
+            self.manager.switch_to_new_scene(scene_class, store_parent=True)
 
 
 # Scene implementations
@@ -156,8 +157,10 @@ class SceneManager:
             self.current_scene = parent
             self.render()
 
-    def switch_to_new_scene(self, scene_class):
-        self.current_scene = scene_class(self, self.current_scene)
+    def switch_to_new_scene(self, scene_class, store_parent=False):
+        parent = self.current_scene if store_parent else None
+
+        self.current_scene = scene_class(self, parent)
         self.render()
 
     def render(self):
