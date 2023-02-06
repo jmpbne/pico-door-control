@@ -16,12 +16,11 @@ class Scene:
         self.manager = manager
         self.parent = parent
 
+    def get_render_data(self):
+        return ()
+
     def handle_event(self, event):
         pass
-
-    @property
-    def render_data(self):
-        return ()
 
 
 class OptionsScene(Scene):
@@ -45,6 +44,9 @@ class OptionsScene(Scene):
         self.position += 1
         self.manager.render()
 
+    def get_render_data(self):
+        return ((0, self.position, "*"),)
+
     def handle_event(self, event):
         super().handle_event(event)
 
@@ -67,8 +69,7 @@ class IdleScene(Scene):
         if event.key_number == BUTTON_RIGHT:
             self.manager.switch_to_new_scene(OpenOptionsScene)
 
-    @property
-    def render_data(self):
+    def get_render_data(self):
         if rtc.get_datetime() is None:
             return ((0, 0, "NIE USTAWIONO ZEGARA"),)
 
@@ -89,18 +90,8 @@ class OpenOptionsScene(OptionsScene):
             DummyScene,
         )
 
-    def handle_event(self, event):
-        super().handle_event(event)
-
-        if event.key_number == BUTTON_LEFT:
-            self.manager.switch_to_new_scene(IdleScene)
-        if event.key_number == BUTTON_RIGHT:
-            self.manager.switch_to_new_scene(SystemOptionsScene)
-
-    @property
-    def render_data(self):
-        return (
-            (0, self.position, "*"),
+    def get_render_data(self):
+        return super().get_render_data() + (
             (1, 0, "OTWORZ TERAZ"),
             (1, 1, "DLUGOSC"),
             (1, 2, "PREDKOSC"),
@@ -110,12 +101,27 @@ class OpenOptionsScene(OptionsScene):
             (1, 6, "POWTORZ CO"),
         )
 
+    def handle_event(self, event):
+        super().handle_event(event)
+
+        if event.key_number == BUTTON_LEFT:
+            self.manager.switch_to_new_scene(IdleScene)
+        if event.key_number == BUTTON_RIGHT:
+            self.manager.switch_to_new_scene(SystemOptionsScene)
+
 
 class SystemOptionsScene(OptionsScene):
     def __init__(self, manager, parent):
         super().__init__(manager, parent)
 
-        self.children = (DummyScene, DummyScene)
+        self.children = (SystemHourScene, DummyScene, DummyScene)
+
+    def get_render_data(self):
+        return super().get_render_data() + (
+            (1, 0, "GODZINA SYSTEMU"),
+            (1, 1, "MINUTA SYSTEMU"),
+            (1, 2, "WERSJA"),
+        )
 
     def handle_event(self, event):
         super().handle_event(event)
@@ -125,23 +131,65 @@ class SystemOptionsScene(OptionsScene):
         if event.key_number == BUTTON_RIGHT:
             self.manager.switch_to_new_scene(IdleScene)
 
-    @property
-    def render_data(self):
-        return (
-            (0, self.position, "*"),
-            (1, 0, "CZAS SYSTEMOWY"),
-            (1, 1, "WERSJA"),
-        )
-
 
 class DummyScene(Scene):
     def handle_event(self, event):
         if event.key_number == BUTTON_OK:
             self.manager.switch_to_parent_scene()
 
-    @property
-    def render_data(self):
+    def get_render_data(self):
         return ((0, 0, "DummyScene"),)
+
+
+class SystemHourScene(Scene):
+    def __init__(self, manager, parent):
+        super().__init__(manager, parent)
+
+        self.min_value = 0
+        self.max_value = 23
+
+        self.current_value = None
+
+    def increase_value(self):
+        if self.current_value is None:
+            self.current_value = self.min_value
+            self.manager.render()
+            return
+
+        if self.current_value == self.max_value:
+            self.current_value = -1
+
+        self.current_value += 1
+        self.manager.render()
+
+    def decrease_value(self):
+        if self.current_value is None:
+            self.current_value = self.max_value
+            self.manager.render()
+            return
+
+        if self.current_value == 0:
+            self.current_value = self.max_value + 1
+
+        self.current_value -= 1
+        self.manager.render()
+
+    def get_current_value_string(self):
+        if self.current_value is None:
+            return "--"
+
+        return str(self.current_value).replace("0", "O")
+
+    def get_render_data(self):
+        return (0, 0, "PODAJ NOWA WARTOSC:"), (0, 2, self.get_current_value_string())
+
+    def handle_event(self, event):
+        if event.key_number == BUTTON_UP:
+            self.increase_value()
+        if event.key_number == BUTTON_DOWN:
+            self.decrease_value()
+        if event.key_number == BUTTON_OK:
+            self.manager.switch_to_parent_scene()
 
 
 # Scene manager
@@ -164,7 +212,7 @@ class SceneManager:
         self.render()
 
     def render(self):
-        display.render(self.current_scene.render_data)
+        display.render(self.current_scene.get_render_data())
 
     def poll(self):
         event = keys.get_event()
