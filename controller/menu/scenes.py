@@ -29,19 +29,66 @@ class Scene:
 class IdleScene(Scene):
     def handle_event(self, event):
         if event.key_number == BUTTON_LEFT:
-            self.manager.switch_scene(SystemScene)
+            self.manager.switch_scene(SystemOptionsScene)
         if event.key_number == BUTTON_RIGHT:
-            self.manager.switch_scene(SystemScene)
+            self.manager.switch_scene(OpenOptionsScene)
 
     @property
     def render_data(self):
         if rtc.get_datetime() is None:
-            return (0, 0, "NIE USTAWIONO ZEGARA"),
+            return ((0, 0, "NIE USTAWIONO ZEGARA"),)
 
         return ()
 
 
-class SystemScene(Scene):
+class OpenOptionsScene(Scene):
+    def __init__(self, manager):
+        super().__init__(manager)
+
+        self.position = 0
+        self.max_position = 6
+
+    def move_cursor_up(self):
+        if self.position == 0:
+            self.position = self.max_position
+        else:
+            self.position -= 1
+
+        self.manager.render()
+
+    def move_cursor_down(self):
+        if self.position == self.max_position:
+            self.position = 0
+        else:
+            self.position += 1
+
+        self.manager.render()
+
+    def handle_event(self, event):
+        if event.key_number == BUTTON_LEFT:
+            self.manager.switch_scene(IdleScene)
+        if event.key_number == BUTTON_RIGHT:
+            self.manager.switch_scene(SystemOptionsScene)
+        if event.key_number == BUTTON_UP:
+            self.move_cursor_up()
+        if event.key_number == BUTTON_DOWN:
+            self.move_cursor_down()
+
+    @property
+    def render_data(self):
+        return (
+            (0, self.position, "*"),
+            (1, 0, "OTWORZ TERAZ"),
+            (1, 1, "DLUGOSC"),
+            (1, 2, "PREDKOSC"),
+            (1, 3, "GODZINA"),
+            (1, 4, "MINUTA"),
+            (1, 5, "ILOSC POWTORZEN"),
+            (1, 6, "POWTORZ CO"),
+        )
+
+
+class SystemOptionsScene(Scene):
     def __init__(self, manager):
         super().__init__(manager)
 
@@ -66,7 +113,7 @@ class SystemScene(Scene):
 
     def handle_event(self, event):
         if event.key_number == BUTTON_LEFT:
-            self.manager.switch_scene(IdleScene)
+            self.manager.switch_scene(OpenOptionsScene)
         if event.key_number == BUTTON_RIGHT:
             self.manager.switch_scene(IdleScene)
         if event.key_number == BUTTON_UP:
