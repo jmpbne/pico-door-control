@@ -2,8 +2,8 @@ from controller.core import rtc
 from controller.menu import display, keys
 
 BUTTON_LEFT = 0
-BUTTON_UP = 1
-BUTTON_DOWN = 2
+BUTTON_DOWN = 1
+BUTTON_UP = 2
 BUTTON_RIGHT = 3
 BUTTON_OK = 4
 
@@ -42,11 +42,11 @@ class OptionsScene(Scene):
     def handle_event(self, event):
         super().handle_event(event)
 
-        if event.key_number == BUTTON_UP:
-            self.move_cursor_up()
-            self.manager.render()
         if event.key_number == BUTTON_DOWN:
             self.move_cursor_down()
+            self.manager.render()
+        if event.key_number == BUTTON_UP:
+            self.move_cursor_up()
             self.manager.render()
         if event.key_number == BUTTON_OK:
             scene_class = self.children[self.position]
@@ -86,16 +86,16 @@ class EntryScene(Scene):
         super().handle_event(event)
 
         if event.key_number == BUTTON_LEFT:
-            self.increase_value(10)
-            self.manager.render()
-        if event.key_number == BUTTON_UP:
-            self.increase_value()
+            self.decrease_value(10)
             self.manager.render()
         if event.key_number == BUTTON_DOWN:
             self.decrease_value()
             self.manager.render()
+        if event.key_number == BUTTON_UP:
+            self.increase_value()
+            self.manager.render()
         if event.key_number == BUTTON_RIGHT:
-            self.decrease_value(10)
+            self.increase_value(10)
             self.manager.render()
 
 
