@@ -16,11 +16,41 @@ class Scene:
         self.manager = manager
 
     def handle_event(self, event):
-        print(event)
+        pass
 
     @property
     def render_data(self):
         return ()
+
+
+class OptionsScene(Scene):
+    def __init__(self, manager):
+        super().__init__(manager)
+
+        self.position = 0
+        self.children = []
+
+    def move_cursor_up(self):
+        if self.position == 0:
+            self.position = len(self.children)
+
+        self.position -= 1
+        self.manager.render()
+
+    def move_cursor_down(self):
+        if self.position == len(self.children) - 1:
+            self.position = -1
+
+        self.position += 1
+        self.manager.render()
+
+    def handle_event(self, event):
+        super().handle_event(event)
+
+        if event.key_number == BUTTON_UP:
+            self.move_cursor_up()
+        if event.key_number == BUTTON_DOWN:
+            self.move_cursor_down()
 
 
 # Scene implementations
@@ -41,38 +71,27 @@ class IdleScene(Scene):
         return ()
 
 
-class OpenOptionsScene(Scene):
+class OpenOptionsScene(OptionsScene):
     def __init__(self, manager):
         super().__init__(manager)
 
-        self.position = 0
-        self.max_position = 6
-
-    def move_cursor_up(self):
-        if self.position == 0:
-            self.position = self.max_position
-        else:
-            self.position -= 1
-
-        self.manager.render()
-
-    def move_cursor_down(self):
-        if self.position == self.max_position:
-            self.position = 0
-        else:
-            self.position += 1
-
-        self.manager.render()
+        self.children = (
+            DummyScene,
+            DummyScene,
+            DummyScene,
+            DummyScene,
+            DummyScene,
+            DummyScene,
+            DummyScene,
+        )
 
     def handle_event(self, event):
+        super().handle_event(event)
+
         if event.key_number == BUTTON_LEFT:
             self.manager.switch_scene(IdleScene)
         if event.key_number == BUTTON_RIGHT:
             self.manager.switch_scene(SystemOptionsScene)
-        if event.key_number == BUTTON_UP:
-            self.move_cursor_up()
-        if event.key_number == BUTTON_DOWN:
-            self.move_cursor_down()
 
     @property
     def render_data(self):
@@ -88,38 +107,19 @@ class OpenOptionsScene(Scene):
         )
 
 
-class SystemOptionsScene(Scene):
+class SystemOptionsScene(OptionsScene):
     def __init__(self, manager):
         super().__init__(manager)
 
-        self.position = 0
-        self.max_position = 1
-
-    def move_cursor_up(self):
-        if self.position == 0:
-            self.position = self.max_position
-        else:
-            self.position -= 1
-
-        self.manager.render()
-
-    def move_cursor_down(self):
-        if self.position == self.max_position:
-            self.position = 0
-        else:
-            self.position += 1
-
-        self.manager.render()
+        self.children = (DummyScene, DummyScene)
 
     def handle_event(self, event):
+        super().handle_event(event)
+
         if event.key_number == BUTTON_LEFT:
             self.manager.switch_scene(OpenOptionsScene)
         if event.key_number == BUTTON_RIGHT:
             self.manager.switch_scene(IdleScene)
-        if event.key_number == BUTTON_UP:
-            self.move_cursor_up()
-        if event.key_number == BUTTON_DOWN:
-            self.move_cursor_down()
 
     @property
     def render_data(self):
@@ -128,6 +128,12 @@ class SystemOptionsScene(Scene):
             (1, 0, "CZAS SYSTEMOWY"),
             (1, 1, "WERSJA"),
         )
+
+
+class DummyScene(Scene):
+    @property
+    def render_data(self):
+        return ((0, 0, "DummyScene"),)
 
 
 # Scene manager
