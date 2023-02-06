@@ -1,6 +1,12 @@
 from controller.core import rtc
 from controller.menu import display, keys
 
+BUTTON_LEFT = 0
+BUTTON_UP = 1
+BUTTON_DOWN = 2
+BUTTON_RIGHT = 3
+BUTTON_OK = 4
+
 
 # Base scenes
 
@@ -17,28 +23,64 @@ class Scene:
         return ()
 
 
-class StaticScene(Scene):
-    pass
-
-
-class MenuScene(Scene):
-    pass
-
-
-class EditScene(Scene):
-    pass
-
-
 # Scene implementations
 
 
-class IdleScene(StaticScene):
+class IdleScene(Scene):
+    def handle_event(self, event):
+        if event.key_number == BUTTON_LEFT:
+            self.manager.switch_scene(SystemScene)
+        if event.key_number == BUTTON_RIGHT:
+            self.manager.switch_scene(SystemScene)
+
     @property
     def render_data(self):
         if rtc.get_datetime() is None:
-            return ((0, 0, "NIE USTAWIONO ZEGARA"),)
+            return (0, 0, "NIE USTAWIONO ZEGARA"),
 
         return ()
+
+
+class SystemScene(Scene):
+    def __init__(self, manager):
+        super().__init__(manager)
+
+        self.position = 0
+        self.max_position = 1
+
+    def move_cursor_up(self):
+        if self.position == 0:
+            self.position = self.max_position
+        else:
+            self.position -= 1
+
+        self.manager.render()
+
+    def move_cursor_down(self):
+        if self.position == self.max_position:
+            self.position = 0
+        else:
+            self.position += 1
+
+        self.manager.render()
+
+    def handle_event(self, event):
+        if event.key_number == BUTTON_LEFT:
+            self.manager.switch_scene(IdleScene)
+        if event.key_number == BUTTON_RIGHT:
+            self.manager.switch_scene(IdleScene)
+        if event.key_number == BUTTON_UP:
+            self.move_cursor_up()
+        if event.key_number == BUTTON_DOWN:
+            self.move_cursor_down()
+
+    @property
+    def render_data(self):
+        return (
+            (0, self.position, "*"),
+            (1, 0, "CZAS SYSTEMOWY"),
+            (1, 1, "WERSJA"),
+        )
 
 
 # Scene manager
@@ -47,10 +89,10 @@ class IdleScene(StaticScene):
 class SceneManager:
     def __init__(self):
         self.current_scene = None
-        self.switch_scene(IdleScene(self))
+        self.switch_scene(IdleScene)
 
-    def switch_scene(self, scene):
-        self.current_scene = scene
+    def switch_scene(self, scene_class):
+        self.current_scene = scene_class(self)
         self.render()
 
     def render(self):
