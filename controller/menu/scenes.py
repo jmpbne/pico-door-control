@@ -53,6 +53,52 @@ class OptionsScene(Scene):
             self.manager.switch_to_new_scene(scene_class, store_parent=True)
 
 
+class EntryScene(Scene):
+    def __init__(self, manager, parent):
+        super().__init__(manager, parent)
+
+        self.min_value = 0
+        self.max_value = 0
+        self.current_value = None
+
+    def decrease_value(self, step=1):
+        if self.current_value is None:
+            return
+
+        self.current_value = max(self.current_value - step, 0)
+
+    def increase_value(self, step=1):
+        if self.current_value is None:
+            self.current_value = -step
+
+        self.current_value = min(self.current_value + step, self.max_value)
+
+    def get_current_value_string(self):
+        if self.current_value is None:
+            return "--"
+
+        return str(self.current_value).replace("0", "O")
+
+    def get_render_data(self):
+        return (0, 0, "PODAJ NOWA WARTOSC:"), (0, 2, self.get_current_value_string())
+
+    def handle_event(self, event):
+        super().handle_event(event)
+
+        if event.key_number == BUTTON_LEFT:
+            self.increase_value(10)
+            self.manager.render()
+        if event.key_number == BUTTON_UP:
+            self.increase_value()
+            self.manager.render()
+        if event.key_number == BUTTON_DOWN:
+            self.decrease_value()
+            self.manager.render()
+        if event.key_number == BUTTON_RIGHT:
+            self.decrease_value(10)
+            self.manager.render()
+
+
 # Scene implementations
 
 
@@ -108,7 +154,7 @@ class SystemOptionsScene(OptionsScene):
     def __init__(self, manager, parent):
         super().__init__(manager, parent)
 
-        self.children = (SystemHourScene, DummyScene, DummyScene)
+        self.children = (SystemHourScene, SystemMinuteScene, DummyScene)
 
     def get_render_data(self):
         return super().get_render_data() + (
@@ -135,49 +181,30 @@ class DummyScene(Scene):
         return ((0, 0, "DummyScene"),)
 
 
-class SystemHourScene(Scene):
+class SystemHourScene(EntryScene):
     def __init__(self, manager, parent):
         super().__init__(manager, parent)
 
         self.min_value = 0
         self.max_value = 23
 
-        self.current_value = None
+    def handle_event(self, event):
+        super().handle_event(event)
 
-    def decrease_value(self, step=1):
-        if self.current_value is None:
-            return
+        if event.key_number == BUTTON_OK:
+            self.manager.switch_to_parent_scene()
 
-        self.current_value = max(self.current_value - step, 0)
 
-    def increase_value(self, step=1):
-        if self.current_value is None:
-            self.current_value = -step
+class SystemMinuteScene(EntryScene):
+    def __init__(self, manager, parent):
+        super().__init__(manager, parent)
 
-        self.current_value = min(self.current_value + step, self.max_value)
-
-    def get_current_value_string(self):
-        if self.current_value is None:
-            return "--"
-
-        return str(self.current_value).replace("0", "O")
-
-    def get_render_data(self):
-        return (0, 0, "PODAJ NOWA WARTOSC:"), (0, 2, self.get_current_value_string())
+        self.min_value = 0
+        self.max_value = 59
 
     def handle_event(self, event):
-        if event.key_number == BUTTON_LEFT:
-            self.increase_value(10)
-            self.manager.render()
-        if event.key_number == BUTTON_UP:
-            self.increase_value()
-            self.manager.render()
-        if event.key_number == BUTTON_DOWN:
-            self.decrease_value()
-            self.manager.render()
-        if event.key_number == BUTTON_RIGHT:
-            self.decrease_value(10)
-            self.manager.render()
+        super().handle_event(event)
+
         if event.key_number == BUTTON_OK:
             self.manager.switch_to_parent_scene()
 
