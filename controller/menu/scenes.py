@@ -31,18 +31,10 @@ class OptionsScene(Scene):
         self.children = []
 
     def move_cursor_up(self):
-        if self.position == 0:
-            self.position = len(self.children)
-
-        self.position -= 1
-        self.manager.render()
+        self.position = max(self.position - 1, 0)
 
     def move_cursor_down(self):
-        if self.position == len(self.children) - 1:
-            self.position = -1
-
-        self.position += 1
-        self.manager.render()
+        self.position = min(self.position + 1, len(self.children) - 1)
 
     def get_render_data(self):
         return ((0, self.position, "*"),)
@@ -52,8 +44,10 @@ class OptionsScene(Scene):
 
         if event.key_number == BUTTON_UP:
             self.move_cursor_up()
+            self.manager.render()
         if event.key_number == BUTTON_DOWN:
             self.move_cursor_down()
+            self.manager.render()
         if event.key_number == BUTTON_OK:
             scene_class = self.children[self.position]
             self.manager.switch_to_new_scene(scene_class, store_parent=True)
@@ -150,29 +144,17 @@ class SystemHourScene(Scene):
 
         self.current_value = None
 
-    def increase_value(self):
+    def decrease_value(self, step=1):
         if self.current_value is None:
-            self.current_value = self.min_value
-            self.manager.render()
             return
 
-        if self.current_value == self.max_value:
-            self.current_value = -1
+        self.current_value = max(self.current_value - step, 0)
 
-        self.current_value += 1
-        self.manager.render()
-
-    def decrease_value(self):
+    def increase_value(self, step=1):
         if self.current_value is None:
-            self.current_value = self.max_value
-            self.manager.render()
-            return
+            self.current_value = -step
 
-        if self.current_value == 0:
-            self.current_value = self.max_value + 1
-
-        self.current_value -= 1
-        self.manager.render()
+        self.current_value = min(self.current_value + step, self.max_value)
 
     def get_current_value_string(self):
         if self.current_value is None:
@@ -184,10 +166,18 @@ class SystemHourScene(Scene):
         return (0, 0, "PODAJ NOWA WARTOSC:"), (0, 2, self.get_current_value_string())
 
     def handle_event(self, event):
+        if event.key_number == BUTTON_LEFT:
+            self.increase_value(10)
+            self.manager.render()
         if event.key_number == BUTTON_UP:
             self.increase_value()
+            self.manager.render()
         if event.key_number == BUTTON_DOWN:
             self.decrease_value()
+            self.manager.render()
+        if event.key_number == BUTTON_RIGHT:
+            self.decrease_value(10)
+            self.manager.render()
         if event.key_number == BUTTON_OK:
             self.manager.switch_to_parent_scene()
 
