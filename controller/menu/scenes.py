@@ -65,7 +65,7 @@ class EntryScene(Scene):
         if self.current_value is None:
             return
 
-        self.current_value = max(self.current_value - step, 0)
+        self.current_value = max(self.current_value - step, self.min_value)
 
     def increase_value(self, step=1):
         if self.current_value is None:
