@@ -24,67 +24,62 @@ default_state = {
 }
 
 
-def get_settings(motor_id):
-    # TODO: do not modify state here
-    return state.data.setdefault(motor_id, dict(default_state))
+def get_value(motor_id, key, default):
+    return state.data.get(motor_id, {}).get(key, default)
 
 
-def post_set_settings(motor_id):
+def set_value(motor_id, key, value):
+    state.data.setdefault(motor_id, dict(default_state))[key] = value
+
     # TODO: update NVM data and restart scheduler
-    print(get_settings(motor_id))
+    print(state.data)
 
 
 class ControlService:
     @staticmethod
     def get_duration(motor_id):
-        return get_settings(motor_id).get(DURATION_KEY)
+        return get_value(motor_id, DURATION_KEY, DURATION_DEFAULT)
 
     @staticmethod
     def get_speed(motor_id):
-        return get_settings(motor_id).get(SPEED_KEY)
+        return get_value(motor_id, SPEED_KEY, SPEED_DEFAULT)
 
     @staticmethod
     def get_hour(motor_id):
-        return get_settings(motor_id).get(HOUR_KEY)
+        return get_value(motor_id, HOUR_KEY, HOUR_DEFAULT)
 
     @staticmethod
     def get_minute(motor_id):
-        return get_settings(motor_id).get(MINUTE_KEY)
+        return get_value(motor_id, MINUTE_KEY, MINUTE_DEFAULT)
 
     @staticmethod
     def get_count(motor_id):
-        return get_settings(motor_id).get(COUNT_KEY)
+        return get_value(motor_id, COUNT_KEY, COUNT_DEFAULT)
 
     @staticmethod
     def get_rate(motor_id):
-        return get_settings(motor_id).get(RATE_KEY)
+        return get_value(motor_id, RATE_KEY, RATE_DEFAULT)
 
     @staticmethod
     def set_duration(motor_id, duration):
-        get_settings(motor_id)[DURATION_KEY] = duration
-        post_set_settings(motor_id)
+        set_value(motor_id, DURATION_KEY, duration)
 
     @staticmethod
     def set_speed(motor_id, speed):
-        get_settings(motor_id)[SPEED_KEY] = speed
-        post_set_settings(motor_id)
+        set_value(motor_id, SPEED_KEY, speed)
 
     @staticmethod
     def set_hour(motor_id, hour):
-        get_settings(motor_id)[HOUR_KEY] = hour
-        post_set_settings(motor_id)
+        set_value(motor_id, HOUR_KEY, hour)
 
     @staticmethod
     def set_minute(motor_id, minute):
-        get_settings(motor_id)[MINUTE_KEY] = minute
-        post_set_settings(motor_id)
+        set_value(motor_id, MINUTE_KEY, minute)
 
     @staticmethod
     def set_count(motor_id, count):
-        get_settings(motor_id)[COUNT_KEY] = count
-        post_set_settings(motor_id)
+        set_value(motor_id, COUNT_KEY, count)
 
     @staticmethod
     def set_rate(motor_id, rate):
-        get_settings(motor_id)[RATE_KEY] = rate
-        post_set_settings(motor_id)
+        set_value(motor_id, RATE_KEY, rate)
