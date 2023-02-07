@@ -36,3 +36,5 @@ def set_datetime(dt):
     rtc_internal.datetime = dt
     rtc_external.datetime = dt
     _lost_power = False
+
+    print(f"Updating RTC time to {dt.tm_hour:02d}:{dt.tm_min:02d}")

@@ -1,5 +1,5 @@
-from controller.core import rtc
 from controller.menu import display, keys
+from controller.service.system import SystemOptionsService
 
 BUTTON_LEFT = 0
 BUTTON_DOWN = 1
@@ -110,7 +110,7 @@ class IdleScene(Scene):
             self.manager.switch_to_new_scene(OpenOptionsScene)
 
     def get_render_data(self):
-        if rtc.get_datetime() is None:
+        if SystemOptionsService.get_hour() is None:
             return ((0, 0, "NIE USTAWIONO ZEGARA"),)
 
         return ()
@@ -188,10 +188,13 @@ class SystemHourScene(EntryScene):
         self.min_value = 0
         self.max_value = 23
 
+        self.current_value = SystemOptionsService.get_hour()
+
     def handle_event(self, event):
         super().handle_event(event)
 
         if event.key_number == BUTTON_OK:
+            SystemOptionsService.set_hour(self.current_value)
             self.manager.switch_to_parent_scene()
 
 
@@ -202,10 +205,13 @@ class SystemMinuteScene(EntryScene):
         self.min_value = 0
         self.max_value = 59
 
+        self.current_value = SystemOptionsService.get_minute()
+
     def handle_event(self, event):
         super().handle_event(event)
 
         if event.key_number == BUTTON_OK:
+            SystemOptionsService.set_minute(self.current_value)
             self.manager.switch_to_parent_scene()
 
 
