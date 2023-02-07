@@ -219,12 +219,14 @@ class SceneManager:
 
     def switch_to_parent_scene(self):
         if parent := self.current_scene.parent:
+            print(f"Returning to {parent.__class__.__name__}")
             self.current_scene = parent
             self.render()
 
     def switch_to_new_scene(self, scene_class, store_parent=False):
         parent = self.current_scene if store_parent else None
 
+        print(f"Switching to {scene_class.__name__}")
         self.current_scene = scene_class(self, parent)
         self.render()
 
