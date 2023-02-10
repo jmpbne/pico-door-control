@@ -1,10 +1,10 @@
 import board
 
-BUTTONS = (board.GP18, board.GP19, board.GP20, board.GP21, board.GP22)
+BUTTONS = (board.GP0, board.GP2, board.GP1, board.GP3, board.GP4)
 
 I2C_DISPLAY_ADDRESS = 0x3C
-I2C_DISPLAY_SCL = board.GP15
-I2C_DISPLAY_SDA = board.GP14
+I2C_DISPLAY_SCL = board.GP11
+I2C_DISPLAY_SDA = board.GP10
 
-I2C_RTC_SCL = board.GP17
-I2C_RTC_SDA = board.GP16
+I2C_RTC_SCL = board.GP13
+I2C_RTC_SDA = board.GP12
