@@ -81,7 +81,7 @@ class EntryScene(Scene):
         return str(self.current_value).replace("0", "O")
 
     def get_render_data(self):
-        return (0, 0, "PODAJ NOWA WARTOSC:"), (0, 2, self.get_current_value_string())
+        return (0, 0, "Podaj nowa wartosc:"), (0, 2, self.get_current_value_string())
 
     def handle_event(self, event):
         super().handle_event(event)
@@ -112,7 +112,7 @@ class IdleScene(Scene):
 
     def get_render_data(self):
         if SystemOptionsService.get_hour() is None:
-            return ((0, 0, "NIE USTAWIONO ZEGARA"),)
+            return ((0, 0, "Nie ustawiono zegara"),)
 
         return ()
 
@@ -133,13 +133,13 @@ class OpenOptionsScene(OptionsScene):
 
     def get_render_data(self):
         return super().get_render_data() + (
-            (1, 0, "OTWORZ TERAZ"),
-            (1, 1, "DLUGOSC"),
-            (1, 2, "PREDKOSC"),
-            (1, 3, "GODZINA"),
-            (1, 4, "MINUTA"),
-            (1, 5, "ILOSC POWTORZEN"),
-            (1, 6, "POWTORZ CO"),
+            (1, 0, "Otworz teraz"),
+            (1, 1, "Dlugosc"),
+            (1, 2, "Predkosc"),
+            (1, 3, "Godzina"),
+            (1, 4, "Minuta"),
+            (1, 5, "Ilosc powtorzen"),
+            (1, 6, "Powtorz co"),
         )
 
     def handle_event(self, event):
@@ -259,9 +259,9 @@ class SystemOptionsScene(OptionsScene):
 
     def get_render_data(self):
         return super().get_render_data() + (
-            (1, 0, "GODZINA SYSTEMU"),
-            (1, 1, "MINUTA SYSTEMU"),
-            (1, 2, "WERSJA"),
+            (1, 0, "Godzina systemu"),
+            (1, 1, "Minuta systemu"),
+            (1, 2, "Wersja"),
         )
 
     def handle_event(self, event):
