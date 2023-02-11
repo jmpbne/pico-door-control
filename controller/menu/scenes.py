@@ -136,14 +136,6 @@ class ControlOptionsScene(OptionsScene):
             (17, 6, f"{ControlService.get_rate(self.motor_id)}m"),
         )
 
-    def handle_event(self, event):
-        super().handle_event(event)
-
-        if event.key_number == BUTTON_LEFT:
-            self.manager.switch_to_new_scene(IdleScene)
-        if event.key_number == BUTTON_RIGHT:
-            self.manager.switch_to_new_scene(SystemOptionsScene)
-
 
 class ControlDurationScene(EntryScene):
     motor_id = None
@@ -274,6 +266,14 @@ class OpenOptionsScene(OpenMotorMixin, ControlOptionsScene):
     def get_render_data(self):
         return super().get_render_data() + ((1, 0, "Otworz teraz"),)
 
+    def handle_event(self, event):
+        super().handle_event(event)
+
+        if event.key_number == BUTTON_LEFT:
+            self.manager.switch_to_new_scene(IdleScene)
+        if event.key_number == BUTTON_RIGHT:
+            self.manager.switch_to_new_scene(CloseOptionsScene)
+
 
 class OpenDurationScene(OpenMotorMixin, ControlDurationScene):
     pass
@@ -299,6 +299,60 @@ class OpenRateScene(OpenMotorMixin, ControlRateScene):
     pass
 
 
+class CloseMotorMixin:
+    motor_id = "c"
+
+
+class CloseOptionsScene(CloseMotorMixin, ControlOptionsScene):
+    def __init__(self, manager, parent):
+        super().__init__(manager, parent)
+
+        self.children = (
+            DummyScene,
+            CloseDurationScene,
+            CloseSpeedScene,
+            CloseHourScene,
+            CloseMinuteScene,
+            CloseCountScene,
+            CloseRateScene,
+        )
+
+    def get_render_data(self):
+        return super().get_render_data() + ((1, 0, "Zamknij teraz"),)
+
+    def handle_event(self, event):
+        super().handle_event(event)
+
+        if event.key_number == BUTTON_LEFT:
+            self.manager.switch_to_new_scene(OpenOptionsScene)
+        if event.key_number == BUTTON_RIGHT:
+            self.manager.switch_to_new_scene(SystemOptionsScene)
+
+
+class CloseDurationScene(CloseMotorMixin, ControlDurationScene):
+    pass
+
+
+class CloseSpeedScene(CloseMotorMixin, ControlSpeedScene):
+    pass
+
+
+class CloseHourScene(CloseMotorMixin, ControlHourScene):
+    pass
+
+
+class CloseMinuteScene(CloseMotorMixin, ControlMinuteScene):
+    pass
+
+
+class CloseCountScene(CloseMotorMixin, ControlCountScene):
+    pass
+
+
+class CloseRateScene(CloseMotorMixin, ControlRateScene):
+    pass
+
+
 class SystemOptionsScene(OptionsScene):
     def __init__(self, manager, parent):
         super().__init__(manager, parent)
@@ -318,7 +372,7 @@ class SystemOptionsScene(OptionsScene):
         super().handle_event(event)
 
         if event.key_number == BUTTON_LEFT:
-            self.manager.switch_to_new_scene(OpenOptionsScene)
+            self.manager.switch_to_new_scene(CloseOptionsScene)
         if event.key_number == BUTTON_RIGHT:
             self.manager.switch_to_new_scene(IdleScene)
 
