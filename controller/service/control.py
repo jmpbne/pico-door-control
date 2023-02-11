@@ -24,6 +24,10 @@ def set_value(motor_id, key, value):
 
 class ControlService:
     @staticmethod
+    def run_oneshot(motor_id):
+        scheduler.request_oneshot(motor_id)
+
+    @staticmethod
     def get_duration(motor_id):
         return get_value(motor_id, constants.DURATION_KEY, constants.DURATION_DEFAULT)
 

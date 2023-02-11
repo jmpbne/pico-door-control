@@ -56,6 +56,10 @@ def init():
     print(data)
 
 
+def request_oneshot(motor_id):
+    print(f"Requesting one-shot for {motor_id}...")
+
+
 async def run():
     while True:
         current = rtc.get_datetime()
