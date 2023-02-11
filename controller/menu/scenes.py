@@ -117,27 +117,11 @@ class IdleScene(Scene):
         return ()
 
 
-class OpenMotorMixin:
-    motor_id = "o"
-
-
-class OpenOptionsScene(OptionsScene, OpenMotorMixin):
-    def __init__(self, manager, parent):
-        super().__init__(manager, parent)
-
-        self.children = (
-            DummyScene,
-            OpenDurationScene,
-            OpenSpeedScene,
-            OpenHourScene,
-            OpenMinuteScene,
-            OpenCountScene,
-            OpenRateScene,
-        )
+class ControlOptionsScene(OptionsScene):
+    motor_id = None
 
     def get_render_data(self):
         return super().get_render_data() + (
-            (1, 0, "Otworz teraz"),
             (1, 1, "Dlugosc"),
             (1, 2, "Predkosc"),
             (1, 3, "Godzina"),
@@ -161,7 +145,9 @@ class OpenOptionsScene(OptionsScene, OpenMotorMixin):
             self.manager.switch_to_new_scene(SystemOptionsScene)
 
 
-class OpenDurationScene(EntryScene, OpenMotorMixin):
+class ControlDurationScene(EntryScene):
+    motor_id = None
+
     def __init__(self, manager, parent):
         super().__init__(manager, parent)
 
@@ -177,7 +163,9 @@ class OpenDurationScene(EntryScene, OpenMotorMixin):
             self.manager.switch_to_parent_scene()
 
 
-class OpenSpeedScene(EntryScene, OpenMotorMixin):
+class ControlSpeedScene(EntryScene):
+    motor_id = None
+
     def __init__(self, manager, parent):
         super().__init__(manager, parent)
 
@@ -193,7 +181,9 @@ class OpenSpeedScene(EntryScene, OpenMotorMixin):
             self.manager.switch_to_parent_scene()
 
 
-class OpenHourScene(EntryScene, OpenMotorMixin):
+class ControlHourScene(EntryScene):
+    motor_id = None
+
     def __init__(self, manager, parent):
         super().__init__(manager, parent)
 
@@ -209,7 +199,9 @@ class OpenHourScene(EntryScene, OpenMotorMixin):
             self.manager.switch_to_parent_scene()
 
 
-class OpenMinuteScene(EntryScene, OpenMotorMixin):
+class ControlMinuteScene(EntryScene):
+    motor_id = None
+
     def __init__(self, manager, parent):
         super().__init__(manager, parent)
 
@@ -225,7 +217,9 @@ class OpenMinuteScene(EntryScene, OpenMotorMixin):
             self.manager.switch_to_parent_scene()
 
 
-class OpenCountScene(EntryScene, OpenMotorMixin):
+class ControlCountScene(EntryScene):
+    motor_id = None
+
     def __init__(self, manager, parent):
         super().__init__(manager, parent)
 
@@ -241,7 +235,9 @@ class OpenCountScene(EntryScene, OpenMotorMixin):
             self.manager.switch_to_parent_scene()
 
 
-class OpenRateScene(EntryScene, OpenMotorMixin):
+class ControlRateScene(EntryScene):
+    motor_id = None
+
     def __init__(self, manager, parent):
         super().__init__(manager, parent)
 
@@ -255,6 +251,52 @@ class OpenRateScene(EntryScene, OpenMotorMixin):
         if event.key_number == BUTTON_OK:
             ControlService.set_rate(self.motor_id, self.current_value)
             self.manager.switch_to_parent_scene()
+
+
+class OpenMotorMixin:
+    motor_id = "o"
+
+
+class OpenOptionsScene(OpenMotorMixin, ControlOptionsScene):
+    def __init__(self, manager, parent):
+        super().__init__(manager, parent)
+
+        self.children = (
+            DummyScene,
+            OpenDurationScene,
+            OpenSpeedScene,
+            OpenHourScene,
+            OpenMinuteScene,
+            OpenCountScene,
+            OpenRateScene,
+        )
+
+    def get_render_data(self):
+        return super().get_render_data() + ((1, 0, "Otworz teraz"),)
+
+
+class OpenDurationScene(OpenMotorMixin, ControlDurationScene):
+    pass
+
+
+class OpenSpeedScene(OpenMotorMixin, ControlSpeedScene):
+    pass
+
+
+class OpenHourScene(OpenMotorMixin, ControlHourScene):
+    pass
+
+
+class OpenMinuteScene(OpenMotorMixin, ControlMinuteScene):
+    pass
+
+
+class OpenCountScene(OpenMotorMixin, ControlCountScene):
+    pass
+
+
+class OpenRateScene(OpenMotorMixin, ControlRateScene):
+    pass
 
 
 class SystemOptionsScene(OptionsScene):
