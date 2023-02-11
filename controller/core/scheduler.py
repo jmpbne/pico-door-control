@@ -62,11 +62,18 @@ async def run():
         current_ts = time.mktime(current)
         current_list = list(current)
 
+        print(current)
+
         for motor_data in data:
+            # Initialize timestamps on first iteration
             if motor_data.get(TIMESTAMP_KEY) is None:
+                mid = motor_data.get(ID_KEY)
+                hour = motor_data.get(constants.HOUR_KEY)
+                minute = motor_data.get(constants.MINUTE_KEY)
+
                 dd = list(current_list)
-                dd[3] = motor_data.get(constants.HOUR_KEY)
-                dd[4] = motor_data.get(constants.MINUTE_KEY)
+                dd[3] = hour
+                dd[4] = minute
                 dd[5] = 0
 
                 date = time.struct_time(dd)
@@ -75,7 +82,14 @@ async def run():
                 if current_ts > date_ts:
                     date_ts += 60 * 60 * 24
 
+                print(f"Creating new event at {hour:02d}:{minute:02d} for ID {mid}")
                 motor_data[TIMESTAMP_KEY] = date_ts
+
+            # Check if it's time
+            if current_ts > motor_data.get(TIMESTAMP_KEY):
+                print("Event:", motor_data)
+                motor_data[TIMESTAMP_KEY] += 60 * 60 * 24
+                print("After:", motor_data)
 
         await asyncio.sleep(5.0)
         print("---")
