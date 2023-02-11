@@ -55,11 +55,11 @@ class OptionsScene(Scene):
 
 
 class EntryScene(Scene):
+    min_value = 0
+    max_value = 0
+
     def __init__(self, manager, parent):
         super().__init__(manager, parent)
-
-        self.min_value = 0
-        self.max_value = 0
         self.current_value = None
 
     def decrease_value(self, step=1):
@@ -100,7 +100,26 @@ class EntryScene(Scene):
             self.manager.render()
 
 
+class HourEntryScene(EntryScene):
+    min_value = 0
+    max_value = 23
+
+
+class MinuteEntryScene(EntryScene):
+    min_value = 0
+    max_value = 59
+
+
 # Scene implementations
+
+
+class DummyScene(Scene):
+    def handle_event(self, event):
+        if event.key_number == BUTTON_OK:
+            self.manager.switch_to_parent_scene()
+
+    def get_render_data(self):
+        return ((0, 0, "DummyScene"),)
 
 
 class IdleScene(Scene):
@@ -140,11 +159,11 @@ class ControlOptionsScene(OptionsScene):
 class ControlDurationScene(EntryScene):
     motor_id = None
 
+    min_value = 1
+    max_value = 120
+
     def __init__(self, manager, parent):
         super().__init__(manager, parent)
-
-        self.min_value = 1
-        self.max_value = 120
         self.current_value = ControlService.get_duration(self.motor_id)
 
     def handle_event(self, event):
@@ -158,11 +177,11 @@ class ControlDurationScene(EntryScene):
 class ControlSpeedScene(EntryScene):
     motor_id = None
 
+    min_value = 20
+    max_value = 100
+
     def __init__(self, manager, parent):
         super().__init__(manager, parent)
-
-        self.min_value = 20
-        self.max_value = 100
         self.current_value = ControlService.get_speed(self.motor_id)
 
     def handle_event(self, event):
@@ -173,14 +192,11 @@ class ControlSpeedScene(EntryScene):
             self.manager.switch_to_parent_scene()
 
 
-class ControlHourScene(EntryScene):
+class ControlHourScene(HourEntryScene):
     motor_id = None
 
     def __init__(self, manager, parent):
         super().__init__(manager, parent)
-
-        self.min_value = 0
-        self.max_value = 23
         self.current_value = ControlService.get_hour(self.motor_id)
 
     def handle_event(self, event):
@@ -191,14 +207,11 @@ class ControlHourScene(EntryScene):
             self.manager.switch_to_parent_scene()
 
 
-class ControlMinuteScene(EntryScene):
+class ControlMinuteScene(MinuteEntryScene):
     motor_id = None
 
     def __init__(self, manager, parent):
         super().__init__(manager, parent)
-
-        self.min_value = 0
-        self.max_value = 59
         self.current_value = ControlService.get_minute(self.motor_id)
 
     def handle_event(self, event):
@@ -212,11 +225,11 @@ class ControlMinuteScene(EntryScene):
 class ControlCountScene(EntryScene):
     motor_id = None
 
+    min_value = 0
+    max_value = 20
+
     def __init__(self, manager, parent):
         super().__init__(manager, parent)
-
-        self.min_value = 0
-        self.max_value = 20
         self.current_value = ControlService.get_count(self.motor_id)
 
     def handle_event(self, event):
@@ -230,11 +243,11 @@ class ControlCountScene(EntryScene):
 class ControlRateScene(EntryScene):
     motor_id = None
 
+    min_value = 2
+    max_value = 120
+
     def __init__(self, manager, parent):
         super().__init__(manager, parent)
-
-        self.min_value = 2
-        self.max_value = 120
         self.current_value = ControlService.get_rate(self.motor_id)
 
     def handle_event(self, event):
@@ -377,21 +390,9 @@ class SystemOptionsScene(OptionsScene):
             self.manager.switch_to_new_scene(IdleScene)
 
 
-class DummyScene(Scene):
-    def handle_event(self, event):
-        if event.key_number == BUTTON_OK:
-            self.manager.switch_to_parent_scene()
-
-    def get_render_data(self):
-        return ((0, 0, "DummyScene"),)
-
-
-class SystemHourScene(EntryScene):
+class SystemHourScene(HourEntryScene):
     def __init__(self, manager, parent):
         super().__init__(manager, parent)
-
-        self.min_value = 0
-        self.max_value = 23
         self.current_value = SystemOptionsService.get_hour()
 
     def handle_event(self, event):
@@ -402,13 +403,9 @@ class SystemHourScene(EntryScene):
             self.manager.switch_to_parent_scene()
 
 
-class SystemMinuteScene(EntryScene):
+class SystemMinuteScene(MinuteEntryScene):
     def __init__(self, manager, parent):
         super().__init__(manager, parent)
-
-        self.min_value = 0
-        self.max_value = 59
-
         self.current_value = SystemOptionsService.get_minute()
 
     def handle_event(self, event):
