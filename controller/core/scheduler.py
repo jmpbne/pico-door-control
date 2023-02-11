@@ -1,4 +1,5 @@
 import asyncio
+import time
 
 from controller import constants
 from controller.core import rtc, state
@@ -57,5 +58,24 @@ def init():
 
 async def run():
     while True:
-        print("ping")
-        await asyncio.sleep(1.0)
+        current = rtc.get_datetime()
+        current_ts = time.mktime(current)
+        current_list = list(current)
+
+        for motor_data in data:
+            if motor_data.get(TIMESTAMP_KEY) is None:
+                dd = list(current_list)
+                dd[3] = motor_data.get(constants.HOUR_KEY)
+                dd[4] = motor_data.get(constants.MINUTE_KEY)
+                dd[5] = 0
+
+                date = time.struct_time(dd)
+                date_ts = time.mktime(date)
+
+                if current_ts > date_ts:
+                    date_ts += 60 * 60 * 24
+
+                motor_data[TIMESTAMP_KEY] = date_ts
+
+        await asyncio.sleep(5.0)
+        print("---")
