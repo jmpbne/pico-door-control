@@ -6,6 +6,7 @@ from controller.menu.scenes import SceneManager
 
 
 async def scheduler_main():
+    scheduler.init()
     await scheduler.run()
 
 

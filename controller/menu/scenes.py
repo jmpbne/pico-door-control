@@ -1,5 +1,6 @@
 import asyncio
 
+from controller import constants
 from controller.menu import display, keys
 from controller.service.control import ControlService
 from controller.service.system import SystemOptionsService
@@ -261,7 +262,7 @@ class ControlRateScene(EntryScene):
 
 
 class OpenMotorMixin:
-    motor_id = "o"
+    motor_id = constants.MOTOR_OPEN_ID
 
 
 class OpenOptionsScene(OpenMotorMixin, ControlOptionsScene):
@@ -315,7 +316,7 @@ class OpenRateScene(OpenMotorMixin, ControlRateScene):
 
 
 class CloseMotorMixin:
-    motor_id = "c"
+    motor_id = constants.MOTOR_CLOSE_ID
 
 
 class CloseOptionsScene(CloseMotorMixin, ControlOptionsScene):
