@@ -3,6 +3,7 @@ import time
 
 from controller import constants
 from controller.core import rtc, state
+from controller.service.control import ControlService
 
 ID_KEY = "id"
 ONESHOT_KEY = "o"
@@ -59,6 +60,17 @@ def init():
 def request_oneshot(motor_id):
     print(f"Requesting one-shot for {motor_id}...")
 
+    sched_data = {
+        ID_KEY: motor_id,
+        constants.DURATION_KEY: ControlService.get_duration(motor_id),
+        constants.SPEED_KEY: ControlService.get_speed(motor_id),
+        constants.HOUR_KEY: None,
+        constants.MINUTE_KEY: None,
+        ONESHOT_KEY: True,
+        TIMESTAMP_KEY: time.time(),
+    }
+    data.append(sched_data)
+
 
 async def run():
     while True:
@@ -92,7 +104,12 @@ async def run():
             # Check if it's time
             if current_ts > motor_data.get(TIMESTAMP_KEY):
                 print("Event:", motor_data)
-                motor_data[TIMESTAMP_KEY] += 60 * 60 * 24
+
+                if motor_data.get(ONESHOT_KEY):
+                    motor_data[TIMESTAMP_KEY] = 9999999999  # FIXME
+                else:
+                    motor_data[TIMESTAMP_KEY] += 60 * 60 * 24
+
                 print("After:", motor_data)
 
         await asyncio.sleep(5.0)
