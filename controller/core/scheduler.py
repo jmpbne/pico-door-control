@@ -64,7 +64,7 @@ async def run():
 
         print(current)
 
-        for motor_data in data:
+        for motor_data in list(data):
             # Initialize timestamps on first iteration
             if motor_data.get(TIMESTAMP_KEY) is None:
                 mid = motor_data.get(ID_KEY)

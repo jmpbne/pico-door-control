@@ -1,5 +1,5 @@
 from controller import constants
-from controller.core import state
+from controller.core import scheduler, state
 
 default_state = {
     constants.DURATION_KEY: constants.DURATION_DEFAULT,
@@ -18,8 +18,8 @@ def get_value(motor_id, key, default):
 def set_value(motor_id, key, value):
     state.data.setdefault(motor_id, dict(default_state))[key] = value
 
-    # TODO: restart scheduler
     state.save_state()
+    scheduler.init()
 
 
 class ControlService:

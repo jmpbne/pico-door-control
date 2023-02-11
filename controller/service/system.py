@@ -1,6 +1,6 @@
 from time import struct_time
 
-from controller.core import rtc
+from controller.core import rtc, scheduler
 
 
 class SystemOptionsService:
@@ -24,6 +24,7 @@ class SystemOptionsService:
         dt = struct_time((2000, 1, 1, hour, minute, 0, -1, -1, -1))
 
         rtc.set_datetime(dt)
+        scheduler.init()
 
     @staticmethod
     def set_minute(minute):
@@ -31,3 +32,4 @@ class SystemOptionsService:
         dt = struct_time((2000, 1, 1, hour, minute, 0, -1, -1, -1))
 
         rtc.set_datetime(dt)
+        scheduler.init()
