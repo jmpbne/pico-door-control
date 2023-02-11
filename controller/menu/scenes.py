@@ -1,3 +1,5 @@
+import asyncio
+
 from controller.menu import display, keys
 from controller.service.control import ControlService
 from controller.service.system import SystemOptionsService
@@ -440,7 +442,9 @@ class SceneManager:
     def render(self):
         display.render(self.current_scene.get_render_data())
 
-    def poll(self):
-        event = keys.get_event()
-        if event:
-            self.current_scene.handle_event(event)
+    async def poll(self):
+        while True:
+            event = keys.get_event()
+            if event:
+                self.current_scene.handle_event(event)
+            await asyncio.sleep(0)
