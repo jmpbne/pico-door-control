@@ -22,3 +22,7 @@ def load_state_safe():
     except Exception as e:
         print(f"Could not load settings because of {type(e)}")
         load_default_state()
+
+
+def save_state():
+    nvm.write_nvm(data)

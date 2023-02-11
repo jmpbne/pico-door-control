@@ -31,8 +31,8 @@ def get_value(motor_id, key, default):
 def set_value(motor_id, key, value):
     state.data.setdefault(motor_id, dict(default_state))[key] = value
 
-    # TODO: update NVM data and restart scheduler
-    print(state.data)
+    # TODO: restart scheduler
+    state.save_state()
 
 
 class ControlService:
