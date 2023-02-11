@@ -117,7 +117,11 @@ class IdleScene(Scene):
         return ()
 
 
-class OpenOptionsScene(OptionsScene):
+class OpenMotorMixin:
+    motor_id = "o"
+
+
+class OpenOptionsScene(OptionsScene, OpenMotorMixin):
     def __init__(self, manager, parent):
         super().__init__(manager, parent)
 
@@ -140,6 +144,12 @@ class OpenOptionsScene(OptionsScene):
             (1, 4, "Minuta"),
             (1, 5, "Ilosc powtorzen"),
             (1, 6, "Powtorz co"),
+            (17, 1, f"{ControlService.get_duration(self.motor_id)}s"),
+            (17, 2, f"{ControlService.get_speed(self.motor_id)}%"),
+            (17, 3, f"{ControlService.get_hour(self.motor_id)}"),
+            (17, 4, f"{ControlService.get_minute(self.motor_id)}"),
+            (17, 5, f"{ControlService.get_count(self.motor_id)}"),
+            (17, 6, f"{ControlService.get_rate(self.motor_id)}m"),
         )
 
     def handle_event(self, event):
@@ -149,10 +159,6 @@ class OpenOptionsScene(OptionsScene):
             self.manager.switch_to_new_scene(IdleScene)
         if event.key_number == BUTTON_RIGHT:
             self.manager.switch_to_new_scene(SystemOptionsScene)
-
-
-class OpenMotorMixin:
-    motor_id = "o"
 
 
 class OpenDurationScene(EntryScene, OpenMotorMixin):
@@ -255,13 +261,15 @@ class SystemOptionsScene(OptionsScene):
     def __init__(self, manager, parent):
         super().__init__(manager, parent)
 
-        self.children = (SystemHourScene, SystemMinuteScene, DummyScene)
+        self.children = (SystemHourScene, SystemMinuteScene)
 
     def get_render_data(self):
         return super().get_render_data() + (
             (1, 0, "Godzina systemu"),
             (1, 1, "Minuta systemu"),
-            (1, 2, "Wersja"),
+            # (1, 2, "Wersja"),
+            (17, 0, f"{SystemOptionsService.get_hour()}"),
+            (17, 1, f"{SystemOptionsService.get_minute()}"),
         )
 
     def handle_event(self, event):
