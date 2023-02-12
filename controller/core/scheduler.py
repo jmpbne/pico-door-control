@@ -69,6 +69,14 @@ def request_oneshot(motor_id):
         ONESHOT_KEY: True,
         TIMESTAMP_KEY: time.time(),
     }
+
+    for event_data in data:
+        oneshot = event_data.get(ONESHOT_KEY)
+        if oneshot:
+            event_data.clear()
+            event_data.update(**sched_data)
+            return
+
     data.append(sched_data)
 
 
@@ -80,12 +88,12 @@ async def run():
 
         print(current)
 
-        for motor_data in list(data):
+        for event_data in list(data):
             # Initialize timestamps on first iteration
-            if motor_data.get(TIMESTAMP_KEY) is None:
-                mid = motor_data.get(ID_KEY)
-                hour = motor_data.get(constants.HOUR_KEY)
-                minute = motor_data.get(constants.MINUTE_KEY)
+            if event_data.get(TIMESTAMP_KEY) is None:
+                mid = event_data.get(ID_KEY)
+                hour = event_data.get(constants.HOUR_KEY)
+                minute = event_data.get(constants.MINUTE_KEY)
 
                 dd = list(current_list)
                 dd[3] = hour
@@ -99,18 +107,20 @@ async def run():
                     date_ts += 60 * 60 * 24
 
                 print(f"Creating new event at {hour:02d}:{minute:02d} for ID {mid}")
-                motor_data[TIMESTAMP_KEY] = date_ts
+                event_data[TIMESTAMP_KEY] = date_ts
 
             # Check if it's time
-            if current_ts > motor_data.get(TIMESTAMP_KEY):
-                print("Event:", motor_data)
+            if current_ts > event_data.get(TIMESTAMP_KEY):
+                print("Event:", event_data)
 
-                if motor_data.get(ONESHOT_KEY):
-                    motor_data[TIMESTAMP_KEY] = 9999999999  # FIXME
+                if event_data.get(ONESHOT_KEY):
+                    event_data[TIMESTAMP_KEY] = 9999999999  # FIXME
                 else:
-                    motor_data[TIMESTAMP_KEY] += 60 * 60 * 24
+                    event_data[TIMESTAMP_KEY] += 60 * 60 * 24
 
-                print("After:", motor_data)
+                print("After:", event_data)
+            else:
+                print("SKIP: ", event_data)
 
         await asyncio.sleep(5.0)
         print("---")
