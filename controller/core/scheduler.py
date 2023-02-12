@@ -1,5 +1,8 @@
-import asyncio
+import board
 import time
+from digitalio import DigitalInOut, Direction
+
+import asyncio
 
 from controller import constants
 from controller.core import rtc, state
@@ -113,6 +116,16 @@ async def run():
             if current_ts > event_data.get(TIMESTAMP_KEY):
                 print("Event:", event_data)
 
+                mid = event_data.get(ID_KEY)
+                if mid == constants.MOTOR_OPEN_ID:
+                    print("opening")
+                    await open_motor(event_data)
+                elif mid == constants.MOTOR_CLOSE_ID:
+                    print("closing")
+                    await close_motor(event_data)
+                else:
+                    print(f"unknown: {mid}")
+
                 if event_data.get(ONESHOT_KEY):
                     event_data[TIMESTAMP_KEY] = 9999999999  # FIXME
                 else:
@@ -124,3 +137,41 @@ async def run():
 
         await asyncio.sleep(5.0)
         print("---")
+
+
+async def open_motor(data):
+    en1 = DigitalInOut(board.GP18)
+    en2 = DigitalInOut(board.GP20)
+
+    en1.direction = Direction.OUTPUT
+    en2.direction = Direction.OUTPUT
+
+    en1.value = False
+    en2.value = True
+
+    await asyncio.sleep(data.get(constants.DURATION_KEY))
+
+    en1.value = False
+    en2.value = False
+
+    en1.deinit()
+    en2.deinit()
+
+
+async def close_motor(data):
+    en1 = DigitalInOut(board.GP21)
+    en2 = DigitalInOut(board.GP26)
+
+    en1.direction = Direction.OUTPUT
+    en2.direction = Direction.OUTPUT
+
+    en1.value = False
+    en2.value = True
+
+    await asyncio.sleep(data.get(constants.DURATION_KEY))
+
+    en1.value = False
+    en2.value = False
+
+    en1.deinit()
+    en2.deinit()
