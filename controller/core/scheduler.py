@@ -86,6 +86,10 @@ def request_oneshot(motor_id):
 async def run():
     while True:
         current = rtc.get_datetime()
+        if current is None:
+            await asyncio.sleep(5.0)
+            continue
+
         current_ts = time.mktime(current)
         current_list = list(current)
 
