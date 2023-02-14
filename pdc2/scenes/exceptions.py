@@ -1,2 +1,0 @@
-class SceneValueError(ValueError):
-    pass
