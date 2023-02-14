@@ -177,7 +177,7 @@ class ControlDurationScene(EntryScene):
     motor_id = None
 
     min_value = 1
-    max_value = 120
+    max_value = 900
 
     def __init__(self, manager, parent):
         super().__init__(manager, parent)
@@ -243,7 +243,7 @@ class ControlCountScene(EntryScene):
     motor_id = None
 
     min_value = 0
-    max_value = 20
+    max_value = 50
 
     def __init__(self, manager, parent):
         super().__init__(manager, parent)
@@ -260,7 +260,7 @@ class ControlCountScene(EntryScene):
 class ControlRateScene(EntryScene):
     motor_id = None
 
-    min_value = 2
+    min_value = 1
     max_value = 120
 
     def __init__(self, manager, parent):
