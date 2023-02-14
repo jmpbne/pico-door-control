@@ -5,145 +5,139 @@ from digitalio import DigitalInOut, Direction
 import asyncio
 
 from controller import constants
-from controller.core import rtc, state
+from controller.core import rtc
 from controller.service.control import ControlService
 
-ID_KEY = "id"
-ONESHOT_KEY = "o"
-TIMESTAMP_KEY = "t"
+RUN_RATE = 5.0
+SECONDS_IN_A_DAY = 60 * 60 * 24
 
 data = []
 
 
-def init_motor(motor_id, motor_data):
-    duration = motor_data.get(constants.DURATION_KEY)
-    speed = motor_data.get(constants.SPEED_KEY)
-    hour = motor_data.get(constants.HOUR_KEY)
-    minute = motor_data.get(constants.MINUTE_KEY)
-    count = motor_data.get(constants.COUNT_KEY)
-    rate = motor_data.get(constants.RATE_KEY)
-
-    if count < 1:
+def init_motor(motor_id):
+    count = ControlService.get_count(motor_id)
+    if count < 0:
         return
 
-    for idx in range(count):
-        offset = hour * 60 + rate * idx + minute
+    duration = ControlService.get_duration(motor_id)
+    speed = ControlService.get_speed(motor_id)
+    hour = ControlService.get_hour(motor_id)
+    minute = ControlService.get_minute(motor_id)
+    rate = ControlService.get_rate(motor_id)
+
+    current_time = rtc.get_datetime()
+    current_timestamp = time.mktime(current_time)
+
+    for it in range(count):
+        offset = hour * 60 + rate * it + minute
         hh, mm = divmod(offset, 60)
 
         if hh > 23:
             continue  # FIXME
 
-        sched_data = {
-            ID_KEY: motor_id,
-            constants.DURATION_KEY: duration,
-            constants.SPEED_KEY: speed,
-            constants.HOUR_KEY: hh,
-            constants.MINUTE_KEY: mm,
-            ONESHOT_KEY: False,
-            TIMESTAMP_KEY: None,
-        }
+        print(f"Creating scheduled event at {hh:02d}:{mm:02d} for ID '{motor_id}'")
 
-        data.append(sched_data)
+        schedule_time = time.struct_time(
+            (
+                current_time.tm_year,
+                current_time.tm_mon,
+                current_time.tm_mday,
+                hh,
+                mm,
+                0,
+                -1,
+                -1,
+                -1,
+            )
+        )
+
+        schedule_timestamp = time.mktime(schedule_time)
+        if current_timestamp > schedule_timestamp:
+            schedule_timestamp += SECONDS_IN_A_DAY
+
+        schedule_data = {
+            "id": motor_id,
+            "duration": duration,
+            "speed": speed,
+            "oneshot": False,
+            "timestamp": schedule_timestamp,
+        }
+        data.append(schedule_data)
 
 
 def init():
+    data.clear()
+
     if rtc.get_datetime() is None:
         print("Clock is not set, scheduler will not be started")
         return
 
-    data.clear()
-
     for motor_id in (constants.MOTOR_OPEN_ID, constants.MOTOR_CLOSE_ID):
-        if motor_data := state.data.get(motor_id):
-            init_motor(motor_id, motor_data)
-
-    print(data)
+        init_motor(motor_id)
 
 
 def request_oneshot(motor_id):
-    print(f"Requesting one-shot for {motor_id}...")
+    print(f"Creating one-time event for ID '{motor_id}'")
 
-    sched_data = {
-        ID_KEY: motor_id,
-        constants.DURATION_KEY: ControlService.get_duration(motor_id),
-        constants.SPEED_KEY: ControlService.get_speed(motor_id),
-        constants.HOUR_KEY: None,
-        constants.MINUTE_KEY: None,
-        ONESHOT_KEY: True,
-        TIMESTAMP_KEY: time.time(),
+    duration = ControlService.get_duration(motor_id)
+    speed = ControlService.get_speed(motor_id)
+
+    schedule_data = {
+        "id": motor_id,
+        "duration": duration,
+        "speed": speed,
+        "oneshot": True,
+        "timestamp": time.time(),
     }
 
-    for event_data in data:
-        oneshot = event_data.get(ONESHOT_KEY)
-        if oneshot:
-            event_data.clear()
-            event_data.update(**sched_data)
+    for existing_data in data:
+        oneshot = existing_data.get("oneshot")
+        existing_id = existing_data.get("id")
+
+        if oneshot and motor_id == existing_id:
+            existing_data.clear()
+            existing_data.update(**schedule_data)
             return
 
-    data.append(sched_data)
+    data.append(schedule_data)
 
 
 async def run():
     while True:
-        current = rtc.get_datetime()
-        if current is None:
-            await asyncio.sleep(5.0)
+        if len(data) == 0:
+            await asyncio.sleep(RUN_RATE)
             continue
 
-        current_ts = time.mktime(current)
-        current_list = list(current)
+        current_time = rtc.get_datetime()
+        current_timestamp = time.mktime(current_time)
 
-        print(current)
+        for schedule_data in list(data):
+            schedule_timestamp = schedule_data.get("timestamp")
+            if schedule_timestamp is None or current_timestamp <= schedule_timestamp:
+                continue
 
-        for event_data in list(data):
-            # Initialize timestamps on first iteration
-            if event_data.get(TIMESTAMP_KEY) is None:
-                mid = event_data.get(ID_KEY)
-                hour = event_data.get(constants.HOUR_KEY)
-                minute = event_data.get(constants.MINUTE_KEY)
+            print(f"Executing scheduled action on motor ID '{schedule_data}'")
 
-                dd = list(current_list)
-                dd[3] = hour
-                dd[4] = minute
-                dd[5] = 0
-
-                date = time.struct_time(dd)
-                date_ts = time.mktime(date)
-
-                if current_ts > date_ts:
-                    date_ts += 60 * 60 * 24
-
-                print(f"Creating new event at {hour:02d}:{minute:02d} for ID {mid}")
-                event_data[TIMESTAMP_KEY] = date_ts
-
-            # Check if it's time
-            if current_ts > event_data.get(TIMESTAMP_KEY):
-                print("Event:", event_data)
-
-                mid = event_data.get(ID_KEY)
-                if mid == constants.MOTOR_OPEN_ID:
-                    print("opening")
-                    await open_motor(event_data)
-                elif mid == constants.MOTOR_CLOSE_ID:
-                    print("closing")
-                    await close_motor(event_data)
-                else:
-                    print(f"unknown: {mid}")
-
-                if event_data.get(ONESHOT_KEY):
-                    event_data[TIMESTAMP_KEY] = 9999999999  # FIXME
-                else:
-                    event_data[TIMESTAMP_KEY] += 60 * 60 * 24
-
-                print("After:", event_data)
+            motor_id = schedule_data.get("id")
+            if motor_id == constants.MOTOR_OPEN_ID:
+                await open_motor(schedule_data)
+            elif motor_id == constants.MOTOR_CLOSE_ID:
+                await close_motor(schedule_data)
             else:
-                print("SKIP: ", event_data)
+                print(f"Warning: unknown motor ID '{motor_id}'")
 
-        await asyncio.sleep(5.0)
-        print("---")
+            oneshot = schedule_data.get("oneshot")
+            if oneshot:
+                schedule_data["timestamp"] = None
+            else:
+                schedule_data["timestamp"] += SECONDS_IN_A_DAY
+
+        await asyncio.sleep(RUN_RATE)
 
 
 async def open_motor(data):
+    print("Opening")
+
     en1 = DigitalInOut(board.GP18)
     en2 = DigitalInOut(board.GP20)
 
@@ -153,7 +147,7 @@ async def open_motor(data):
     en1.value = False
     en2.value = True
 
-    await asyncio.sleep(data.get(constants.DURATION_KEY))
+    await asyncio.sleep(data.get("duration"))
 
     en1.value = False
     en2.value = False
@@ -163,6 +157,8 @@ async def open_motor(data):
 
 
 async def close_motor(data):
+    print("Closing")
+
     en1 = DigitalInOut(board.GP21)
     en2 = DigitalInOut(board.GP26)
 
@@ -172,7 +168,7 @@ async def close_motor(data):
     en1.value = False
     en2.value = True
 
-    await asyncio.sleep(data.get(constants.DURATION_KEY))
+    await asyncio.sleep(data.get("duration"))
 
     en1.value = False
     en2.value = False
