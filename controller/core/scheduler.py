@@ -136,11 +136,9 @@ async def run():
         await asyncio.sleep(RUN_RATE)
 
 
-async def open_motor(event):
-    print("Opening")
-
-    en1 = DigitalInOut(board.GP18)
-    en2 = DigitalInOut(board.GP20)
+async def control_motor(event, en1_pin, en2_pin):
+    en1 = DigitalInOut(en1_pin)
+    en2 = DigitalInOut(en2_pin)
 
     en1.direction = Direction.OUTPUT
     en2.direction = Direction.OUTPUT
@@ -155,24 +153,13 @@ async def open_motor(event):
 
     en1.deinit()
     en2.deinit()
+
+
+async def open_motor(event):
+    print("Opening")
+    await control_motor(event, board.GP18, board.GP20)
 
 
 async def close_motor(event):
     print("Closing")
-
-    en1 = DigitalInOut(board.GP21)
-    en2 = DigitalInOut(board.GP26)
-
-    en1.direction = Direction.OUTPUT
-    en2.direction = Direction.OUTPUT
-
-    en1.value = False
-    en2.value = True
-
-    await asyncio.sleep(event.duration)
-
-    en1.value = False
-    en2.value = False
-
-    en1.deinit()
-    en2.deinit()
+    await control_motor(event, board.GP21, board.GP26)
