@@ -14,6 +14,15 @@ SECONDS_IN_A_DAY = 60 * 60 * 24
 data = []
 
 
+class Event:
+    def __init__(self, *, motor_id, timestamp, duration, speed, oneshot=False):
+        self.motor_id = motor_id
+        self.timestamp = timestamp
+        self.duration = duration
+        self.speed = speed
+        self.oneshot = oneshot
+
+
 def init_motor(motor_id):
     count = ControlService.get_count(motor_id)
     if count < 0:
@@ -55,14 +64,13 @@ def init_motor(motor_id):
         if current_timestamp > schedule_timestamp:
             schedule_timestamp += SECONDS_IN_A_DAY
 
-        schedule_data = {
-            "id": motor_id,
-            "duration": duration,
-            "speed": speed,
-            "oneshot": False,
-            "timestamp": schedule_timestamp,
-        }
-        data.append(schedule_data)
+        event = Event(
+            motor_id=motor_id,
+            duration=duration,
+            speed=speed,
+            timestamp=schedule_timestamp,
+        )
+        data.append(event)
 
 
 def init():
@@ -82,24 +90,20 @@ def request_oneshot(motor_id):
     duration = ControlService.get_duration(motor_id)
     speed = ControlService.get_speed(motor_id)
 
-    schedule_data = {
-        "id": motor_id,
-        "duration": duration,
-        "speed": speed,
-        "oneshot": True,
-        "timestamp": time.time(),
-    }
+    event = Event(
+        motor_id=motor_id,
+        duration=duration,
+        speed=speed,
+        oneshot=True,
+        timestamp=time.time(),
+    )
 
-    for existing_data in data:
-        oneshot = existing_data.get("oneshot")
-        existing_id = existing_data.get("id")
-
-        if oneshot and motor_id == existing_id:
-            existing_data.clear()
-            existing_data.update(**schedule_data)
+    for idx, existing_event in enumerate(data):
+        if existing_event.oneshot and motor_id == existing_event.motor_id:
+            data[idx] = event
             return
 
-    data.append(schedule_data)
+    data.append(event)
 
 
 async def run():
@@ -111,31 +115,28 @@ async def run():
         current_time = rtc.get_datetime()
         current_timestamp = time.mktime(current_time)
 
-        for schedule_data in list(data):
-            schedule_timestamp = schedule_data.get("timestamp")
-            if schedule_timestamp is None or current_timestamp <= schedule_timestamp:
+        for event in list(data):
+            if event.timestamp is None or current_timestamp <= event.timestamp:
                 continue
 
-            print(f"Executing scheduled action on motor ID '{schedule_data}'")
+            print(f"Executing scheduled action on motor ID '{event.motor_id}'")
 
-            motor_id = schedule_data.get("id")
-            if motor_id == constants.MOTOR_OPEN_ID:
-                await open_motor(schedule_data)
-            elif motor_id == constants.MOTOR_CLOSE_ID:
-                await close_motor(schedule_data)
+            if event.motor_id == constants.MOTOR_OPEN_ID:
+                await open_motor(event)
+            elif event.motor_id == constants.MOTOR_CLOSE_ID:
+                await close_motor(event)
             else:
-                print(f"Warning: unknown motor ID '{motor_id}'")
+                print(f"Warning: unknown motor ID '{event.motor_id}'")
 
-            oneshot = schedule_data.get("oneshot")
-            if oneshot:
-                schedule_data["timestamp"] = None
+            if event.oneshot:
+                event.timestamp = None
             else:
-                schedule_data["timestamp"] += SECONDS_IN_A_DAY
+                event.timestamp += SECONDS_IN_A_DAY
 
         await asyncio.sleep(RUN_RATE)
 
 
-async def open_motor(data):
+async def open_motor(event):
     print("Opening")
 
     en1 = DigitalInOut(board.GP18)
@@ -147,7 +148,7 @@ async def open_motor(data):
     en1.value = False
     en2.value = True
 
-    await asyncio.sleep(data.get("duration"))
+    await asyncio.sleep(event.duration)
 
     en1.value = False
     en2.value = False
@@ -156,7 +157,7 @@ async def open_motor(data):
     en2.deinit()
 
 
-async def close_motor(data):
+async def close_motor(event):
     print("Closing")
 
     en1 = DigitalInOut(board.GP21)
@@ -168,7 +169,7 @@ async def close_motor(data):
     en1.value = False
     en2.value = True
 
-    await asyncio.sleep(data.get("duration"))
+    await asyncio.sleep(event.duration)
 
     en1.value = False
     en2.value = False
