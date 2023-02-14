@@ -4,7 +4,7 @@ data = {}
 
 
 def init():
-    load_state()
+    load_state_safe()
 
 
 def load_state():
@@ -20,7 +20,7 @@ def load_state_safe():
     try:
         load_state()
     except Exception as e:
-        print(f"Could not load settings because of {type(e)}")
+        print(f"Could not load settings because of {e.__class__.__name__}")
         load_default_state()
 
 
