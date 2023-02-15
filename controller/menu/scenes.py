@@ -104,25 +104,16 @@ class EntryScene(Scene):
 
 
 class HourEntryScene(EntryScene):
-    min_value = 0
-    max_value = 23
+    min_value = constants.HOUR_MIN
+    max_value = constants.HOUR_MAX
 
 
 class MinuteEntryScene(EntryScene):
-    min_value = 0
-    max_value = 59
+    min_value = constants.MINUTE_MIN
+    max_value = constants.MINUTE_MAX
 
 
 # Scene implementations
-
-
-class DummyScene(Scene):
-    def handle_event(self, event):
-        if event.key_number == BUTTON_OK:
-            self.manager.switch_to_parent_scene()
-
-    def get_render_data(self):
-        return ((0, 0, "DummyScene"),)
 
 
 class IdleScene(Scene):
@@ -176,8 +167,8 @@ class ControlNowScene(Scene):
 class ControlDurationScene(EntryScene):
     motor_id = None
 
-    min_value = 1
-    max_value = 900
+    min_value = constants.DURATION_MIN
+    max_value = constants.DURATION_MAX
 
     def __init__(self, manager, parent):
         super().__init__(manager, parent)
@@ -194,8 +185,8 @@ class ControlDurationScene(EntryScene):
 class ControlSpeedScene(EntryScene):
     motor_id = None
 
-    min_value = 20
-    max_value = 100
+    min_value = constants.SPEED_MIN
+    max_value = constants.SPEED_MAX
 
     def __init__(self, manager, parent):
         super().__init__(manager, parent)
@@ -242,8 +233,8 @@ class ControlMinuteScene(MinuteEntryScene):
 class ControlCountScene(EntryScene):
     motor_id = None
 
-    min_value = 0
-    max_value = 50
+    min_value = constants.COUNT_MIN
+    max_value = constants.COUNT_MAX
 
     def __init__(self, manager, parent):
         super().__init__(manager, parent)
@@ -260,8 +251,8 @@ class ControlCountScene(EntryScene):
 class ControlRateScene(EntryScene):
     motor_id = None
 
-    min_value = 1
-    max_value = 120
+    min_value = constants.RATE_MIN
+    max_value = constants.RATE_MAX
 
     def __init__(self, manager, parent):
         super().__init__(manager, parent)
