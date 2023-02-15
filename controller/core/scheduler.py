@@ -6,7 +6,7 @@ import asyncio
 
 from controller import constants
 from controller.core import rtc
-from controller.service.control import ControlService
+from controller.service import control
 
 RUN_RATE = 5.0
 SECONDS_IN_A_DAY = 60 * 60 * 24
@@ -24,15 +24,15 @@ class Event:
 
 
 def init_motor(motor_id):
-    count = ControlService.get_count(motor_id)
+    count = control.get_count(motor_id)
     if count < 0:
         return
 
-    duration = ControlService.get_duration(motor_id)
-    speed = ControlService.get_speed(motor_id)
-    hour = ControlService.get_hour(motor_id)
-    minute = ControlService.get_minute(motor_id)
-    rate = ControlService.get_rate(motor_id)
+    duration = control.get_duration(motor_id)
+    speed = control.get_speed(motor_id)
+    hour = control.get_hour(motor_id)
+    minute = control.get_minute(motor_id)
+    rate = control.get_rate(motor_id)
 
     current_time = rtc.get_datetime()
     current_timestamp = time.mktime(current_time)
@@ -87,8 +87,8 @@ def init():
 def request_oneshot(motor_id):
     print(f"Creating one-time event for ID '{motor_id}'")
 
-    duration = ControlService.get_duration(motor_id)
-    speed = ControlService.get_speed(motor_id)
+    duration = control.get_duration(motor_id)
+    speed = control.get_speed(motor_id)
 
     event = Event(
         motor_id=motor_id,

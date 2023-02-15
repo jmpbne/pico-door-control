@@ -1,9 +1,9 @@
 import asyncio
 
 from controller import constants
+from controller.core import rtc
 from controller.menu import display, keys
-from controller.service.control import ControlService
-from controller.service.system import SystemOptionsService
+from controller.service import control, system
 
 BUTTON_LEFT = 0
 BUTTON_DOWN = 1
@@ -124,7 +124,7 @@ class IdleScene(Scene):
             self.manager.switch_to_new_scene(OpenOptionsScene)
 
     def get_render_data(self):
-        if SystemOptionsService.get_hour() is None:
+        if rtc.get_datetime() is None:
             return ((0, 0, "Nie ustawiono zegara"),)
 
         return ()
@@ -141,12 +141,12 @@ class ControlOptionsScene(OptionsScene):
             (1, 4, "Minuta"),
             (1, 5, "Ilosc powtorzen"),
             (1, 6, "Powtorz co"),
-            (17, 1, f"{ControlService.get_duration(self.motor_id)}s"),
-            (17, 2, f"{ControlService.get_speed(self.motor_id)}%"),
-            (17, 3, f"{ControlService.get_hour(self.motor_id)}"),
-            (17, 4, f"{ControlService.get_minute(self.motor_id)}"),
-            (17, 5, f"{ControlService.get_count(self.motor_id)}"),
-            (17, 6, f"{ControlService.get_rate(self.motor_id)}m"),
+            (17, 1, f"{control.get_duration(self.motor_id)}s"),
+            (17, 2, f"{control.get_speed(self.motor_id)}%"),
+            (17, 3, f"{control.get_hour(self.motor_id)}"),
+            (17, 4, f"{control.get_minute(self.motor_id)}"),
+            (17, 5, f"{control.get_count(self.motor_id)}"),
+            (17, 6, f"{control.get_rate(self.motor_id)}m"),
         )
 
 
@@ -155,7 +155,7 @@ class ControlNowScene(Scene):
 
     def __init__(self, manager, parent):
         super().__init__(manager, parent)
-        ControlService.run_oneshot(self.motor_id)
+        control.run_oneshot(self.motor_id)
 
     def get_render_data(self):
         return ((0, 0, "Gotowe"),)
@@ -172,13 +172,13 @@ class ControlDurationScene(EntryScene):
 
     def __init__(self, manager, parent):
         super().__init__(manager, parent)
-        self.current_value = ControlService.get_duration(self.motor_id)
+        self.current_value = control.get_duration(self.motor_id)
 
     def handle_event(self, event):
         super().handle_event(event)
 
         if event.key_number == BUTTON_OK:
-            ControlService.set_duration(self.motor_id, self.current_value)
+            control.set_duration(self.motor_id, self.current_value)
             self.manager.switch_to_parent_scene()
 
 
@@ -190,13 +190,13 @@ class ControlSpeedScene(EntryScene):
 
     def __init__(self, manager, parent):
         super().__init__(manager, parent)
-        self.current_value = ControlService.get_speed(self.motor_id)
+        self.current_value = control.get_speed(self.motor_id)
 
     def handle_event(self, event):
         super().handle_event(event)
 
         if event.key_number == BUTTON_OK:
-            ControlService.set_speed(self.motor_id, self.current_value)
+            control.set_speed(self.motor_id, self.current_value)
             self.manager.switch_to_parent_scene()
 
 
@@ -205,13 +205,13 @@ class ControlHourScene(HourEntryScene):
 
     def __init__(self, manager, parent):
         super().__init__(manager, parent)
-        self.current_value = ControlService.get_hour(self.motor_id)
+        self.current_value = control.get_hour(self.motor_id)
 
     def handle_event(self, event):
         super().handle_event(event)
 
         if event.key_number == BUTTON_OK:
-            ControlService.set_hour(self.motor_id, self.current_value)
+            control.set_hour(self.motor_id, self.current_value)
             self.manager.switch_to_parent_scene()
 
 
@@ -220,13 +220,13 @@ class ControlMinuteScene(MinuteEntryScene):
 
     def __init__(self, manager, parent):
         super().__init__(manager, parent)
-        self.current_value = ControlService.get_minute(self.motor_id)
+        self.current_value = control.get_minute(self.motor_id)
 
     def handle_event(self, event):
         super().handle_event(event)
 
         if event.key_number == BUTTON_OK:
-            ControlService.set_minute(self.motor_id, self.current_value)
+            control.set_minute(self.motor_id, self.current_value)
             self.manager.switch_to_parent_scene()
 
 
@@ -238,13 +238,13 @@ class ControlCountScene(EntryScene):
 
     def __init__(self, manager, parent):
         super().__init__(manager, parent)
-        self.current_value = ControlService.get_count(self.motor_id)
+        self.current_value = control.get_count(self.motor_id)
 
     def handle_event(self, event):
         super().handle_event(event)
 
         if event.key_number == BUTTON_OK:
-            ControlService.set_count(self.motor_id, self.current_value)
+            control.set_count(self.motor_id, self.current_value)
             self.manager.switch_to_parent_scene()
 
 
@@ -256,13 +256,13 @@ class ControlRateScene(EntryScene):
 
     def __init__(self, manager, parent):
         super().__init__(manager, parent)
-        self.current_value = ControlService.get_rate(self.motor_id)
+        self.current_value = control.get_rate(self.motor_id)
 
     def handle_event(self, event):
         super().handle_event(event)
 
         if event.key_number == BUTTON_OK:
-            ControlService.set_rate(self.motor_id, self.current_value)
+            control.set_rate(self.motor_id, self.current_value)
             self.manager.switch_to_parent_scene()
 
 
@@ -393,8 +393,8 @@ class SystemOptionsScene(OptionsScene):
             (1, 0, "Godzina systemu"),
             (1, 1, "Minuta systemu"),
             # (1, 2, "Wersja"),
-            (17, 0, f"{SystemOptionsService.get_hour()}"),
-            (17, 1, f"{SystemOptionsService.get_minute()}"),
+            (17, 0, f"{system.get_hour()}"),
+            (17, 1, f"{system.get_minute()}"),
         )
 
     def handle_event(self, event):
@@ -409,26 +409,26 @@ class SystemOptionsScene(OptionsScene):
 class SystemHourScene(HourEntryScene):
     def __init__(self, manager, parent):
         super().__init__(manager, parent)
-        self.current_value = SystemOptionsService.get_hour()
+        self.current_value = system.get_hour()
 
     def handle_event(self, event):
         super().handle_event(event)
 
         if event.key_number == BUTTON_OK:
-            SystemOptionsService.set_hour(self.current_value)
+            system.set_hour(self.current_value)
             self.manager.switch_to_parent_scene()
 
 
 class SystemMinuteScene(MinuteEntryScene):
     def __init__(self, manager, parent):
         super().__init__(manager, parent)
-        self.current_value = SystemOptionsService.get_minute()
+        self.current_value = system.get_minute()
 
     def handle_event(self, event):
         super().handle_event(event)
 
         if event.key_number == BUTTON_OK:
-            SystemOptionsService.set_minute(self.current_value)
+            system.set_minute(self.current_value)
             self.manager.switch_to_parent_scene()
 
 
