@@ -25,9 +25,9 @@ Successfully tested with CircuitPython 8.0.0 but downgraded due to stability iss
 ## Setting up
 
 1. Install CircuitPython
-2. Install dev dependencies: `pip install requirements-dev.txt`
+2. Install dev dependencies: `pip install -r requirements-dev.txt`
 3. Install board dependencies: `circup install -r requirements.txt`
-4. Copy application code (`controller` directory and `code.py` file)
+4. Copy application code: `bash update.sh`
 
 ## Prototype design
 
