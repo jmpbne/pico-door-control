@@ -119,7 +119,7 @@ async def run():
             if event.timestamp is None or current_timestamp <= event.timestamp:
                 continue
 
-            print(f"Executing scheduled action on motor ID '{event.motor_id}'")
+            print(f"Processing event on motor ID '{event.motor_id}'")
 
             if event.motor_id == constants.MOTOR_OPEN_ID:
                 await open_motor(event)
@@ -129,9 +129,11 @@ async def run():
                 print(f"Warning: unknown motor ID '{event.motor_id}'")
 
             if event.oneshot:
+                print(f"New timestamp is not created for one-shot event")
                 event.timestamp = None
             else:
                 event.timestamp += SECONDS_IN_A_DAY
+                print(f"Creating new timestamp for the event")
 
         await asyncio.sleep(RUN_RATE)
 
