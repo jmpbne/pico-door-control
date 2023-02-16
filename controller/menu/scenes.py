@@ -3,6 +3,7 @@ import asyncio
 from controller import constants
 from controller.core import rtc
 from controller.menu import display, keys
+from controller.menu.locale import gettext as _
 from controller.service import control, system
 
 BUTTON_LEFT = 0
@@ -89,7 +90,7 @@ class EntryScene(Scene):
         value = self.current_value
 
         return (
-            (0, 0, "Podaj nowa wartosc:"),
+            (0, 0, _("Enter new value:")),
             (0, 2, format_number(value, digits=self.digits)),
         )
 
@@ -134,7 +135,7 @@ class IdleScene(Scene):
 
     def get_render_data(self):
         if rtc.get_datetime() is None:
-            return ((0, 0, "Nie ustawiono zegara"),)
+            return ((0, 0, _("System clock not set")),)
 
         return ()
 
@@ -151,12 +152,12 @@ class ControlOptionsScene(OptionsScene):
         rate = control.get_rate(self.motor_id)
 
         return super().get_render_data() + (
-            (1, 1, "Dlugosc"),
-            (1, 2, "Predkosc"),
-            (1, 3, "Godzina"),
-            (1, 4, "Minuta"),
-            (1, 5, "Powtorz razy"),
-            (1, 6, "Powtorz co"),
+            (1, 1, _("Duration")),
+            (1, 2, _("Speed")),
+            (1, 3, _("Hour")),
+            (1, 4, _("Minute")),
+            (1, 5, _("Repeat count")),
+            (1, 6, _("Repeat every")),
             (16, 1, format_number(duration)),
             (16, 2, format_number(speed)),
             (16, 3, format_number(hour, digits=2)),
@@ -177,7 +178,7 @@ class ControlNowScene(Scene):
         control.run_oneshot(self.motor_id)
 
     def get_render_data(self):
-        return ((0, 0, "Gotowe"),)
+        return ((0, 0, _("Done")),)
 
     def handle_event(self, event):
         self.manager.switch_to_parent_scene()
@@ -304,7 +305,7 @@ class OpenOptionsScene(OpenMotorMixin, ControlOptionsScene):
         )
 
     def get_render_data(self):
-        return super().get_render_data() + ((1, 0, "Otworz teraz"),)
+        return super().get_render_data() + ((1, 0, _("Open now")),)
 
     def handle_event(self, event):
         super().handle_event(event)
@@ -362,7 +363,7 @@ class CloseOptionsScene(CloseMotorMixin, ControlOptionsScene):
         )
 
     def get_render_data(self):
-        return super().get_render_data() + ((1, 0, "Zamknij teraz"),)
+        return super().get_render_data() + ((1, 0, _("Close now")),)
 
     def handle_event(self, event):
         super().handle_event(event)
@@ -412,8 +413,8 @@ class SystemOptionsScene(OptionsScene):
         minute = system.get_minute()
 
         return super().get_render_data() + (
-            (1, 0, "Godzina sys."),
-            (1, 1, "Minuta sys."),
+            (1, 0, _("System hour")),
+            (1, 1, _("System minute")),
             (16, 0, format_number(hour, digits=2)),
             (16, 1, format_number(minute, digits=2)),
         )

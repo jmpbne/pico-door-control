@@ -8,3 +8,5 @@ I2C_DISPLAY_SDA = board.GP10
 
 I2C_RTC_SCL = board.GP13
 I2C_RTC_SDA = board.GP12
+
+MENU_LOCALE = "en"
