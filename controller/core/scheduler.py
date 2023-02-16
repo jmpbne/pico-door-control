@@ -107,12 +107,13 @@ def request_oneshot(motor_id):
 
 
 async def run():
+    # TODO: one-shot events should be handled even if system clock is not set
+
     while True:
-        if len(data) == 0:
+        if (current_time := rtc.get_datetime()) is None:
             await asyncio.sleep(RUN_RATE)
             continue
 
-        current_time = rtc.get_datetime()
         current_timestamp = time.mktime(current_time)
 
         for event in list(data):

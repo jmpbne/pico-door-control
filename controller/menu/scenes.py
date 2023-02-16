@@ -175,10 +175,16 @@ class ControlNowScene(Scene):
 
     def __init__(self, manager, parent):
         super().__init__(manager, parent)
-        control.run_oneshot(self.motor_id)
+        self.success = bool(rtc.get_datetime())
+
+        if self.success:
+            control.run_oneshot(self.motor_id)
 
     def get_render_data(self):
-        return ((0, 0, _("Done")),)
+        return (
+            (0, 0, _("Done") if self.success else _("Set system time first")),
+            (19, 6, _("OK")),
+        )
 
     def handle_event(self, event):
         self.manager.switch_to_parent_scene()
