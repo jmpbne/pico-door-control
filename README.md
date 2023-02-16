@@ -7,6 +7,7 @@ Prototype hardware used to control two relays via the L298N motor driver.
 - Open and close the door on schedule or manually
 - Change the opening/closing duration, speed (for actual DC motors - not implemented), repeat count and rate
 - Store system time and settings between reboots
+- Support multiple menu languages (change in `controller/config.py`)
 
 Requires [CircuitPython 7.3.3](https://github.com/adafruit/circuitpython/releases/tag/7.3.3).
 Successfully tested with CircuitPython 8.0.0 but downgraded due to stability issues.
