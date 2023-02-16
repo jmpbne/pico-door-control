@@ -12,6 +12,13 @@ BUTTON_RIGHT = 3
 BUTTON_OK = 4
 
 
+def format_number(number, digits=0):
+    if number is None:
+        return "-" * digits
+
+    return f"{number:0{digits}d}".replace("0", "O")
+
+
 # Base scenes
 
 
@@ -58,6 +65,7 @@ class OptionsScene(Scene):
 
 
 class EntryScene(Scene):
+    digits = 0
     min_value = 0
     max_value = 0
 
@@ -77,14 +85,13 @@ class EntryScene(Scene):
 
         self.current_value = min(self.current_value + step, self.max_value)
 
-    def get_current_value_string(self):
-        if self.current_value is None:
-            return "--"
-
-        return str(self.current_value).replace("0", "O")
-
     def get_render_data(self):
-        return (0, 0, "Podaj nowa wartosc:"), (0, 2, self.get_current_value_string())
+        value = self.current_value
+
+        return (
+            (0, 0, "Podaj nowa wartosc:"),
+            (0, 2, format_number(value, digits=self.digits)),
+        )
 
     def handle_event(self, event):
         super().handle_event(event)
@@ -104,11 +111,13 @@ class EntryScene(Scene):
 
 
 class HourEntryScene(EntryScene):
+    digits = 2
     min_value = constants.HOUR_MIN
     max_value = constants.HOUR_MAX
 
 
 class MinuteEntryScene(EntryScene):
+    digits = 2
     min_value = constants.MINUTE_MIN
     max_value = constants.MINUTE_MAX
 
@@ -134,19 +143,29 @@ class ControlOptionsScene(OptionsScene):
     motor_id = None
 
     def get_render_data(self):
+        duration = control.get_duration(self.motor_id)
+        speed = control.get_speed(self.motor_id)
+        hour = control.get_hour(self.motor_id)
+        minute = control.get_minute(self.motor_id)
+        count = control.get_count(self.motor_id)
+        rate = control.get_rate(self.motor_id)
+
         return super().get_render_data() + (
             (1, 1, "Dlugosc"),
             (1, 2, "Predkosc"),
             (1, 3, "Godzina"),
             (1, 4, "Minuta"),
-            (1, 5, "Ilosc powtorzen"),
+            (1, 5, "Powtorz razy"),
             (1, 6, "Powtorz co"),
-            (17, 1, f"{control.get_duration(self.motor_id)}s"),
-            (17, 2, f"{control.get_speed(self.motor_id)}%"),
-            (17, 3, f"{control.get_hour(self.motor_id)}"),
-            (17, 4, f"{control.get_minute(self.motor_id)}"),
-            (17, 5, f"{control.get_count(self.motor_id)}"),
-            (17, 6, f"{control.get_rate(self.motor_id)}m"),
+            (16, 1, format_number(duration)),
+            (16, 2, format_number(speed)),
+            (16, 3, format_number(hour, digits=2)),
+            (16, 4, format_number(minute, digits=2)),
+            (16, 5, format_number(count)),
+            (16, 6, format_number(rate)),
+            (20, 1, "s"),
+            (20, 2, "%"),
+            (20, 6, "m"),
         )
 
 
@@ -389,12 +408,14 @@ class SystemOptionsScene(OptionsScene):
         self.children = (SystemHourScene, SystemMinuteScene)
 
     def get_render_data(self):
+        hour = system.get_hour()
+        minute = system.get_minute()
+
         return super().get_render_data() + (
-            (1, 0, "Godzina systemu"),
-            (1, 1, "Minuta systemu"),
-            # (1, 2, "Wersja"),
-            (17, 0, f"{system.get_hour()}"),
-            (17, 1, f"{system.get_minute()}"),
+            (1, 0, "Godzina sys."),
+            (1, 1, "Minuta sys."),
+            (16, 0, format_number(hour, digits=2)),
+            (16, 1, format_number(minute, digits=2)),
         )
 
     def handle_event(self, event):
