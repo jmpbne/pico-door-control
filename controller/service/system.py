@@ -1,5 +1,7 @@
+import sys
 from time import struct_time
 
+from controller import constants
 from controller.core import rtc, scheduler
 
 
@@ -15,6 +17,13 @@ def get_minute():
         return rtc.get_datetime().tm_min
     except AttributeError:
         return None
+
+
+def get_system_info():
+    firmware_version = constants.FIRMWARE_VERSION
+    circuitpy_version = ".".join(str(v) for v in sys.implementation.version)
+
+    return f"v{firmware_version}/v{circuitpy_version}"
 
 
 def set_hour(hour):

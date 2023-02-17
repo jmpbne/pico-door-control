@@ -423,6 +423,7 @@ class SystemOptionsScene(OptionsScene):
             (1, 1, _("System minute")),
             (16, 0, format_number(hour, digits=2)),
             (16, 1, format_number(minute, digits=2)),
+            (0, 6, system.get_system_info()),
         )
 
     def handle_event(self, event):

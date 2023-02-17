@@ -1,3 +1,5 @@
+FIRMWARE_VERSION = "0.3"
+
 MOTOR_CLOSE_ID = "c"
 MOTOR_OPEN_ID = "o"
 
