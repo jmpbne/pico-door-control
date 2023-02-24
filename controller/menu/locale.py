@@ -14,9 +14,9 @@ strings = {
         "Repeat every": "Powtorz co",
         "Set system time first": "Najpierw ustaw zegar",
         "Speed": "Predkosc",
+        "System clock not set": "Nie ustawiono zegara",
         "System hour": "Godzina zegara",
         "System minute": "Minuta zegara",
-        "System time not set": "Nie ustawiono zegara",
     },
 }
 
